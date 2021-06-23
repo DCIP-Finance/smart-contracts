@@ -262,7 +262,7 @@ library SafeMath {
     }
 }
 
-abstract contract Context {
+contract Context {
     function _msgSender() internal view virtual returns (address payable) {
         return msg.sender;
     }

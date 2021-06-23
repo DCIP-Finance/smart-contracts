@@ -800,7 +800,7 @@ contract Ownable is Context {
 
 pragma solidity ^0.6.0;
 
-interface DCIP {
+interface IDCIP {
     function transfer(address to, uint256 amount) external;
 
     function balanceOf(address account) external view returns (uint256);
@@ -811,7 +811,7 @@ interface DCIP {
 contract PrivateSaleDCIP is Ownable {
     using SafeMath for uint256;
 
-    DCIP public token;
+    IDCIP public token;
     uint256 public presaleStartTimestamp;
     uint256 public presaleEndTimestamp;
     uint256 public hardCapEthAmount = 250 ether;
@@ -824,7 +824,7 @@ contract PrivateSaleDCIP is Ownable {
     mapping(address => uint256) public withdraws;
     mapping(address => bool) public whitelist;
 
-    constructor(DCIP _token) public {
+    constructor(IDCIP _token) public {
         presaleStartTimestamp = now;
         presaleEndTimestamp = now.add(10 minutes);
         token = _token;

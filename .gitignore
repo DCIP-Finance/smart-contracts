@@ -1,4 +1,5 @@
 .DS_Store
 .secret
 ./node_modules/**
+./node_modules
 ./build/**
