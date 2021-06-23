@@ -902,6 +902,8 @@ contract DCIP is Context, IBEP20, Ownable {
 
     mapping(address => bool) private _isExcludedFromFee;
 
+    mapping(address => bool) private _isForeverExcludedFromReward;
+
     mapping(address => bool) private _isExcluded;
     address[] private _excluded;
 
@@ -973,6 +975,10 @@ contract DCIP is Context, IBEP20, Ownable {
         //exclude owner and this contract from fee
         _isExcludedFromFee[owner()] = true;
         _isExcludedFromFee[address(this)] = true;
+
+        _isForeverExcludedFromReward[_burnAddress] = true;
+        _isForeverExcludedFromReward[_marketingWalletAddress] = true;
+        _isForeverExcludedFromReward[_communityInvestWalletAddress] = true;
 
         _isExcluded[_burnAddress] = true;
         _isExcluded[_marketingWalletAddress] = true;
@@ -1130,6 +1136,10 @@ contract DCIP is Context, IBEP20, Ownable {
     function excludeFromReward(address account) public onlyOwner() {
         // require(account != 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D, 'We can not exclude Pancake router.');
         require(!_isExcluded[account], "Account is already excluded");
+        require(
+            !_isForeverExcludedFromReward[account],
+            "Account can not be excluded"
+        );
         if (_reflectOwned[account] > 0) {
             _takeOwned[account] = tokenFromReflection(_reflectOwned[account]);
         }
@@ -1139,6 +1149,10 @@ contract DCIP is Context, IBEP20, Ownable {
 
     function includeInReward(address account) external onlyOwner() {
         require(_isExcluded[account], "Account is already included");
+        require(
+            !_isForeverExcludedFromReward[account],
+            "Account can not be included"
+        );
         for (uint256 i = 0; i < _excluded.length; i++) {
             if (_excluded[i] == account) {
                 _excluded[i] = _excluded[_excluded.length - 1];
