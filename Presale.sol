@@ -810,7 +810,6 @@ contract PrivateSaleDCIP is Ownable {
     using SafeMath for uint256;
 
     DCIP public token;
-    address payable public presale;
     uint256 public presaleStartTimestamp;
     uint256 public presaleEndTimestamp;
     uint256 public hardCapEthAmount = 250 ether;
@@ -825,7 +824,6 @@ contract PrivateSaleDCIP is Ownable {
 
     constructor(DCIP _token) public {
         token = _token;
-        presale = 0xdA9f9d44F4c5022c789641802c10Da5992557D35; //private wallet
 
         presaleStartTimestamp = now;
         presaleEndTimestamp = now.add(1 days);
@@ -911,10 +909,6 @@ contract PrivateSaleDCIP is Ownable {
 
     function releaseFunds() external onlyOwner {
         msg.sender.transfer(address(this).balance);
-    }
-
-    function setPresale(address payable presaleAdress) external onlyOwner {
-        presale = presaleAdress;
     }
 
     function addWhiteList(address payable _address) external onlyOwner {

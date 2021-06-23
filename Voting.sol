@@ -41,7 +41,6 @@ contract Ballot {
     mapping(uint256 => Proposal) public proposals;
 
     uint256 public startedAt;
-    uint256 public endedAt;
 
     modifier onlyEligibleVoter(address _voter) {
         require(IBEP20(myToken).balanceOf(_voter) > 0);
@@ -172,7 +171,6 @@ contract Ballot {
             "Previous voting has not been finished"
         );
         startedAt = block.timestamp;
-        endedAt = startedAt + 12 hours;
         state = VotingState.Active;
         emit VoteStarted();
     }
@@ -180,7 +178,6 @@ contract Ballot {
     function forceTerminateVoting() public onlyChairman {
         require(state == VotingState.Active, "Voting has not been started.");
         startedAt = 0;
-        endedAt = 0;
         state = VotingState.Diactive;
     }
 }
