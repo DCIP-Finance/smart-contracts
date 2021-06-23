@@ -867,21 +867,15 @@ contract PrivateSaleDCIP is Ownable {
         emit Withdrawn(msg.sender, tokenAmount);
     }
 
-    function debugBalanceOfContract() 
-    public
-    view
-    returns (uint256)
-    {
-        return
-            token
-            .balanceOf(address(this));
+    function tokensFromWei(uint256 twei) public view returns (uint256) {
+        return (twei / 10**18) * (rate * 10**token.decimals());
     }
 
-    function debugReward(address _address) 
-    public
-    view
-    returns (uint256)
-    {
+    function debugBalanceOfContract() public view returns (uint256) {
+        return token.balanceOf(address(this));
+    }
+
+    function debugReward(address _address) public view returns (uint256) {
         return
             token
                 .balanceOf(address(this))
@@ -890,26 +884,26 @@ contract PrivateSaleDCIP is Ownable {
                 .div(5);
     }
 
-    function debugTotalAmountDividedBy(address _address) 
-    public
-    view
-    returns (uint256)
+    function debugTotalAmountDividedBy(address _address)
+        public
+        view
+        returns (uint256)
     {
         return deposits[_address] / rate;
     }
 
-    function debugTotalAmountMultipliedBy(address _address) 
-    public
-    view
-    returns (uint256)
+    function debugTotalAmountMultipliedBy(address _address)
+        public
+        view
+        returns (uint256)
     {
         return deposits[_address] * rate;
     }
 
-    function debugTotalAmountJaspersMagic(address _address) 
-    public
-    view
-    returns (uint256)
+    function debugTotalAmountJaspersMagic(address _address)
+        public
+        view
+        returns (uint256)
     {
         return (deposits[_address] / 10**18) * (750000000 * token.decimals());
     }
@@ -919,41 +913,33 @@ contract PrivateSaleDCIP is Ownable {
         view
         returns (uint256)
     {
-        uint256 totalAmount =
-            (deposits[_address] / 10**18) * (750000000 * token.decimals());
-        uint256 reward =
-            token
-                .balanceOf(address(this))
-                .mul(deposits[_address])
-                .div(totalDepositedEthBalance)
-                .div(5);
+        uint256 totalAmount = _tokensFromWei(deposits[_address]);
 
         if (
-            // now > presaleEndTimestamp.add(2 days) && withdraws[msg.sender] == 0
             now > presaleEndTimestamp.add(1 minutes) &&
             withdraws[msg.sender] == 0
         ) {
-            return totalAmount.div(5).add(reward);
+            return totalAmount.div(5);
         } else if (
             now > presaleEndTimestamp.add(2 minutes) &&
             withdraws[msg.sender] == totalAmount.div(5)
         ) {
-            return totalAmount.div(5).add(reward);
+            return totalAmount.div(5);
         } else if (
             now > presaleEndTimestamp.add(3 minutes) &&
             withdraws[msg.sender] == totalAmount.div(5).mul(2)
         ) {
-            return totalAmount.div(5).add(reward);
+            return totalAmount.div(5);
         } else if (
             now > presaleEndTimestamp.add(4 minutes) &&
             withdraws[msg.sender] == totalAmount.div(5).mul(3)
         ) {
-            return totalAmount.div(5).add(reward);
+            return totalAmount.div(5);
         } else if (
             now > presaleEndTimestamp.add(5 minutes) &&
             withdraws[msg.sender] == totalAmount.div(5).mul(4)
         ) {
-            return totalAmount.div(5).add(reward);
+            return totalAmount.div(5);
         }
         return 0;
     }
