@@ -137,6 +137,7 @@ contract Ballot {
         Voter storage _sender = voters[msg.sender];
         uint256 _voterTokenCount = IBEP20(myToken).balanceOf(msg.sender);
 
+        require(_voterTokenCount <= totalSupplyOfMyToken, "Balance cannot be greater than total supply");
         _sender.weight = _voterTokenCount.div(totalSupplyOfMyToken);
 
         Proposal storage _proposal = proposals[proposalID];

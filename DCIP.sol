@@ -1486,7 +1486,7 @@ contract DCIP is Context, IBEP20, Ownable {
                 toCommunityWallet,
                 false
             );
-            _burnToken(toBurn);
+            _burnTokens(from, toBurn, toBurn.mul(_getRate()));
             _takeLiquidity(toLiquidity);
             _reflectFee(rFee, tFee);
         } else {
@@ -1658,7 +1658,7 @@ contract DCIP is Context, IBEP20, Ownable {
         if (_isExcluded[sender])
             _takeOwned[sender] = _takeOwned[sender].sub(_burnAmount);
 
-        _burnToken(sender, _burnAmount, reflectedAmount );
+        _burnTokens(sender, _burnAmount, reflectedAmount );
     }
 
         /**
