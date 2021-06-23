@@ -804,6 +804,8 @@ interface DCIP {
     function transfer(address to, uint256 amount) external;
 
     function balanceOf(address account) external view returns (uint256);
+
+    function decimals() external pure returns (uint8);
 }
 
 contract PrivateSaleDCIP is Ownable {
@@ -816,17 +818,19 @@ contract PrivateSaleDCIP is Ownable {
     uint256 public totalDepositedEthBalance;
     uint256 public minimumDepositEthAmount = 0 ether;
     uint256 public maximumDepositEthAmount = 50 ether;
-    uint256 public tokenPerBNB = 750000000000;
+    uint256 public rate;
 
     mapping(address => uint256) public deposits;
     mapping(address => uint256) public withdraws;
     mapping(address => bool) public whitelist;
 
     constructor(DCIP _token) public {
-        token = _token;
-
         presaleStartTimestamp = now;
         presaleEndTimestamp = now.add(1 days);
+
+        // Calculate amount of tokens per wei
+        // 1eth should be 750.000.000.000 DCIP, one DCIP is 10^8 tokens
+        rate = (750000000000 * 10**_token.decimals()) / 10**16;
     }
 
     receive() external payable {
@@ -872,7 +876,7 @@ contract PrivateSaleDCIP is Ownable {
         view
         returns (uint256)
     {
-        uint256 totalAmount = deposits[_address] * tokenPerBNB;
+        uint256 totalAmount = deposits[_address] * rate;
         uint256 reward =
             token
                 .balanceOf(address(this))
