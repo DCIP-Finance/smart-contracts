@@ -871,6 +871,10 @@ contract PrivateSaleDCIP is Ownable {
         return twei.div(rate);
     }
 
+    function debugRate() public view returns (uint256) {
+        return rate;
+    }
+
     function debugBalanceOfContract() public view returns (uint256) {
         return token.balanceOf(address(this));
     }
