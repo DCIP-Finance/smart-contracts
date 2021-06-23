@@ -872,7 +872,7 @@ contract PrivateSaleDCIP is Ownable {
     view
     returns (uint256)
     {
-                return
+        return
                     token
                     .balanceOf(address(this))
                     .mul(deposits[_address])
@@ -880,13 +880,12 @@ contract PrivateSaleDCIP is Ownable {
                     .div(5);
     }
 
-    
     function debugTotalAmount(address _address) 
     public
     view
     returns (uint256)
     {
-                return deposits[_address] * rate;
+        return deposits[_address] / rate;
     }
 
     function getCalculatedAmount(address _address)
