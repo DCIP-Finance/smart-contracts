@@ -828,7 +828,7 @@ contract PrivateSaleDCIP is Ownable {
         presaleStartTimestamp = now;
         presaleEndTimestamp = now.add(4 minutes);
         token = _token;
-        rate = _rate;
+        rate = _rate.mul(10**uint256(token.decimals())).div(10 ^ 18);
     }
 
     receive() external payable {
@@ -868,10 +868,7 @@ contract PrivateSaleDCIP is Ownable {
     }
 
     function tokensFromWei(uint256 twei) public view returns (uint256) {
-        uint256 _currRate =
-            rate.mul(10**uint256(token.decimals())).div(10 ^ 18);
-
-        return twei.div(_currRate);
+        return twei.div(rate);
     }
 
     function debugBalanceOfContract() public view returns (uint256) {
