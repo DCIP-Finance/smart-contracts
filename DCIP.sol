@@ -1249,7 +1249,10 @@ contract DCIP is Context, IBEP20, Ownable {
             uint256
         )
     {
-        uint256 tFee = calculateTaxFee(tAmount);
+        bool heldLessThan24Hours =
+            block.timestamp < _holderToTimestamp[_msgSender()] + 24 hours;
+
+        uint256 tFee = calculateTaxFee(tAmount, heldLessThan24Hours);
         uint256 tLiquidity = calculateLiquidityFee(tAmount);
         uint256 tTransferAmount = tAmount.sub(tFee).sub(tLiquidity);
         return (tTransferAmount, tFee, tLiquidity);
@@ -1308,8 +1311,12 @@ contract DCIP is Context, IBEP20, Ownable {
             );
     }
 
-    function calculateTaxFee(uint256 _amount) private view returns (uint256) {
-        if (block.timestamp < _holderToTimestamp[_msgSender()] + 24 hours) {
+    function calculateTaxFee(uint256 _amount, bool _heldLessThan24Hours)
+        private
+        view
+        returns (uint256)
+    {
+        if (_heldLessThan24Hours) {
             return _amount.mul(_taxFee + 1).div(10**2);
         } else {
             return _amount.mul(_taxFee).div(10**2);
@@ -1324,20 +1331,24 @@ contract DCIP is Context, IBEP20, Ownable {
         return _amount.mul(_liquidityFee).div(10**2);
     }
 
-    function calculateBurnFee(uint256 _amount) private view returns (uint256) {
-        if (block.timestamp < _holderToTimestamp[_msgSender()] + 24 hours) {
+    function calculateBurnFee(uint256 _amount, bool _heldLessThan24Hours)
+        private
+        view
+        returns (uint256)
+    {
+        if (_heldLessThan24Hours) {
             return _amount.mul(4).div(10**2);
         } else {
             return _amount.mul(2).div(10**2);
         }
     }
 
-    function calculateCommunityFee(uint256 _amount)
+    function calculateCommunityFee(uint256 _amount, bool _heldLessThan24Hours)
         private
         view
         returns (uint256)
     {
-        if (block.timestamp < _holderToTimestamp[_msgSender()] + 24 hours) {
+        if (_heldLessThan24Hours) {
             return _amount.mul(6).div(10**2);
         } else {
             return _amount.mul(2).div(10**2);
@@ -1431,10 +1442,14 @@ contract DCIP is Context, IBEP20, Ownable {
         }
 
         if (takeFee) {
+            bool heldLessThan24Hours =
+                block.timestamp < _holderToTimestamp[_msgSender()] + 24 hours;
+
             uint256 toMarketingWallet = calculateMarketingFee(amount);
-            uint256 toCommunityWallet = calculateCommunityFee(amount);
+            uint256 toCommunityWallet =
+                calculateCommunityFee(amount, heldLessThan24Hours);
             uint256 toLiquidity = calculateLiquidityFee(amount);
-            uint256 toBurn = calculateBurnFee(amount);
+            uint256 toBurn = calculateBurnFee(amount, heldLessThan24Hours);
             (, , uint256 rFee, , uint256 tFee, ) = _getValues(amount);
 
             uint256 feeTotal =
