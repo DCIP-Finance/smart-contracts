@@ -859,7 +859,7 @@ contract PrivateSaleDCIP is Ownable {
         emit Deposited(msg.sender, msg.value);
     }
 
-    function withdraw() public payable {
+    function withdraw() public {
         require(
             now >= presaleStartTimestamp && now <= presaleEndTimestamp,
             "presale is not active"
