@@ -934,7 +934,7 @@ contract DCIP is Context, IBEP20, Ownable {
     mapping(address => uint256) private _holderToTimestamp;
     mapping(address => bool) private _isHolder;
 
-    address public _burnAddress;
+    address public burnAddress = 0x0000000000000000000000000000000299792458;
     address public _marketingWalletAddress;
     address public _communityInvestWalletAddress;
 
@@ -966,7 +966,6 @@ contract DCIP is Context, IBEP20, Ownable {
             _pancakeRouter.WETH()
         );
 
-        _burnAddress = 0x000000000000000000000000000000000000dEaD;
         _marketingWalletAddress = marketingWalletAddress;
         _communityInvestWalletAddress = communityInvestWalletAddress;
         // set the rest of the contract variables
@@ -976,11 +975,11 @@ contract DCIP is Context, IBEP20, Ownable {
         _isExcludedFromFee[owner()] = true;
         _isExcludedFromFee[address(this)] = true;
 
-        _isForeverExcludedFromReward[_burnAddress] = true;
+        _isForeverExcludedFromReward[burnAddress] = true;
         _isForeverExcludedFromReward[_marketingWalletAddress] = true;
         _isForeverExcludedFromReward[_communityInvestWalletAddress] = true;
 
-        _isExcluded[_burnAddress] = true;
+        _isExcluded[burnAddress] = true;
         _isExcluded[_marketingWalletAddress] = true;
         _isExcluded[_communityInvestWalletAddress] = true;
 
@@ -1599,36 +1598,59 @@ contract DCIP is Context, IBEP20, Ownable {
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
+        /**
+     * @dev this is really a "soft" burn (total supply is not reduced). RFI holders
+     * get two benefits from burning tokens:
+     *
+     * 1) Tokens in the burn address increase the % of tokens held by holders not
+     *    excluded from rewards (assuming the burn address is excluded)
+     * 2) Tokens in the burn address cannot be sold (which in turn draing the 
+     *    liquidity pool)
+     *
+     *
+     * In RFI holders already get % of each transaction so the value of their tokens 
+     * increases (in a way). Therefore there is really no need to do a "hard" burn 
+     * (reduce the total supply). What matters (in RFI) is to make sure that a large
+     * amount of tokens cannot be sold = draining the liquidity pool = lowering the
+     * value of tokens holders own. For this purpose, transfering tokens to a (vanity)
+     * burn address is the most appropriate way to "burn". 
+     */
     function _burnTokenFromWallet(address sender, uint256 _burnAmount) private {
         if (_burnAmount == 0) {
             return;
         }
 
-        uint256 currentRate = _getRate();
-        uint256 rBurn = _burnAmount.mul(currentRate);
+        uint256 balance = balanceOf(sender);
+        require(balance >= _burnAmount, "DCIP: burn amount exceeds balance");
 
-        if (_isExcluded[sender]) {
+        uint256 reflectedAmount = _burnAmount.mul(_getRate());
+
+        // remove the amount from the sender's balance first
+        _reflectOwned[sender] = _reflectOwned[sender].sub(reflectedAmount);
+        if (_isExcluded[sender])
             _takeOwned[sender] = _takeOwned[sender].sub(_burnAmount);
-            _takeOwned[_burnAddress] = _takeOwned[_burnAddress].add(
-                _burnAmount
-            );
-        } else {
-            _reflectOwned[sender] = _reflectOwned[sender].sub(rBurn);
-            _takeOwned[_burnAddress] = _takeOwned[_burnAddress].add(
-                _burnAmount
-            );
-        }
 
-        // _tBurnTotal = _tBurnTotal.add(_burnAmount);
-
-        emit Transfer(sender, _burnAddress, _burnAmount);
+        _burnToken(sender, _burnAmount, reflectedAmount );
     }
 
-    function _burnToken(uint256 _burnAmount) private {
-        if (_burnAmount == 0) {
-            return;
-        }
-        _takeOwned[_burnAddress] = _takeOwned[_burnAddress].add(_burnAmount);
-        emit Transfer(_msgSender(), _burnAddress, _burnAmount);
+        /**
+     * @dev "Soft" burns the specified amount of tokens by sending them 
+     * to the burn address
+     */
+    function _burnTokens(address sender, uint256 tBurn, uint256 rBurn) internal {
+
+        /**
+         * @dev Do not reduce _totalSupply and/or _reflectedSupply. (soft) burning by sending
+         * tokens to the burn address (which should be excluded from rewards) is sufficient
+         * in RFI
+         */ 
+        _reflectOwned[burnAddress] = _reflectOwned[burnAddress].add(rBurn);
+        if (_isExcluded[burnAddress])
+            _takeOwned[burnAddress] = _takeOwned[burnAddress].add(tBurn);
+
+        /**
+         * @dev Emit the event so that the burn address balance is updated (on bscscan)
+         */
+        emit Transfer(sender, burnAddress, tBurn);
     }
 }
