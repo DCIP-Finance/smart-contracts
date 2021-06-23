@@ -16,7 +16,7 @@ library Address {
      * It is unsafe to assume that an address for which this function returns
      * false is an externally-owned account (EOA) and not a contract.
      *
-     * Among others, `isContract` will return false for the following
+     * Among othex`rs, `isContract` will return false for the following
      * types of addresses:
      *
      *  - an externally-owned account
@@ -827,11 +827,12 @@ contract PrivateSaleDCIP is Ownable {
     constructor(DCIP _token) public {
         presaleStartTimestamp = now;
         presaleEndTimestamp = now.add(10 minutes);
+        token = _token;
 
         // Calculate amount of tokens per wei
         // 1eth should be 750.000.000.000 DCIP, one DCIP is 10^9 tokens, one eth is 10^18 wei
         // 1 DCIPToken = 750 wei
-        rate = (750000000000 * 10**_token.decimals()) / 10**18;
+        rate = 750000000000 * (10**uint256(token.decimals()) / 10**18);
     }
 
     receive() external payable {
@@ -843,6 +844,7 @@ contract PrivateSaleDCIP is Ownable {
             now >= presaleStartTimestamp && now <= presaleEndTimestamp,
             "presale is not active"
         );
+        require(whitelist[msg.sender] == true, "invalid deposit address");
         require(
             totalDepositedEthBalance.add(msg.value) <= hardCapEthAmount,
             "deposit limits reached"
