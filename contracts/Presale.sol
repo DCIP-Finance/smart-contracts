@@ -868,7 +868,7 @@ contract PrivateSaleDCIP is Ownable {
     }
 
     function tokensFromWei(uint256 twei) public view returns (uint256) {
-        return (twei / 10**18) * (rate * 10**token.decimals());
+        return twei.div(10**18).mul(rate.mul(10**uint256(token.decimals())));
     }
 
     function debugBalanceOfContract() public view returns (uint256) {
