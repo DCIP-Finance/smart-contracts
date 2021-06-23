@@ -895,8 +895,8 @@ contract DCIP is Context, IBEP20, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
-    mapping(address => uint256) private _rOwned;
-    mapping(address => uint256) private _tOwned;
+    mapping(address => uint256) private _reflectOwned;
+    mapping(address => uint256) private _takeOwned;
 
     mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -955,7 +955,7 @@ contract DCIP is Context, IBEP20, Ownable {
         address marketingWalletAddress,
         address communityInvestWalletAddress
     ) public {
-        _rOwned[_msgSender()] = _rTotal;
+        _reflectOwned[_msgSender()] = _rTotal;
 
         IPancakeRouter02 _pancakeRouter = IPancakeRouter02(routerAddress);
         // Create a pancake pair for this new token
@@ -1001,9 +1001,9 @@ contract DCIP is Context, IBEP20, Ownable {
     }
 
     function balanceOf(address account) public view override returns (uint256) {
-        // if (block.timestamp < _holderToTimestamp[account] + 24 hours) return _tOwned[account];
-        if (_isExcluded[account]) return _tOwned[account];
-        return tokenFromReflection(_rOwned[account]);
+        // if (block.timestamp < _holderToTimestamp[account] + 24 hours) return _takeOwned[account];
+        if (_isExcluded[account]) return _takeOwned[account];
+        return tokenFromReflection(_reflectOwned[account]);
     }
 
     function transfer(address recipient, uint256 amount)
@@ -1094,7 +1094,7 @@ contract DCIP is Context, IBEP20, Ownable {
             "Excluded addresses cannot call this function"
         );
         (uint256 rAmount, , , , , ) = _getValues(tAmount);
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
+        _reflectOwned[sender] = _reflectOwned[sender].sub(rAmount);
         _rTotal = _rTotal.sub(rAmount);
         _tFeeTotal = _tFeeTotal.add(tAmount);
     }
@@ -1130,19 +1130,19 @@ contract DCIP is Context, IBEP20, Ownable {
     function excludeFromReward(address account) public onlyOwner() {
         // require(account != 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D, 'We can not exclude Pancake router.');
         require(!_isExcluded[account], "Account is already excluded");
-        if (_rOwned[account] > 0) {
-            _tOwned[account] = tokenFromReflection(_rOwned[account]);
+        if (_reflectOwned[account] > 0) {
+            _takeOwned[account] = tokenFromReflection(_reflectOwned[account]);
         }
         _isExcluded[account] = true;
         _excluded.push(account);
     }
 
     function includeInReward(address account) external onlyOwner() {
-        require(_isExcluded[account], "Account is already excluded");
+        require(_isExcluded[account], "Account is already included");
         for (uint256 i = 0; i < _excluded.length; i++) {
             if (_excluded[i] == account) {
                 _excluded[i] = _excluded[_excluded.length - 1];
-                _tOwned[account] = 0;
+                _takeOwned[account] = 0;
                 _isExcluded[account] = false;
                 _excluded.pop();
                 break;
@@ -1158,10 +1158,12 @@ contract DCIP is Context, IBEP20, Ownable {
         uint256 rAmount = tAmount.mul(_getRate());
         uint256 rTransferAmount = rAmount;
         uint256 tTransferAmount = tAmount;
-        _tOwned[sender] = _tOwned[sender].sub(tAmount);
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _tOwned[recipient] = _tOwned[recipient].add(tTransferAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+        _takeOwned[sender] = _takeOwned[sender].sub(tAmount);
+        _reflectOwned[sender] = _reflectOwned[sender].sub(rAmount);
+        _takeOwned[recipient] = _takeOwned[recipient].add(tTransferAmount);
+        _reflectOwned[recipient] = _reflectOwned[recipient].add(
+            rTransferAmount
+        );
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
@@ -1270,11 +1272,11 @@ contract DCIP is Context, IBEP20, Ownable {
         uint256 tSupply = _tTotal;
         for (uint256 i = 0; i < _excluded.length; i++) {
             if (
-                _rOwned[_excluded[i]] > rSupply ||
-                _tOwned[_excluded[i]] > tSupply
+                _reflectOwned[_excluded[i]] > rSupply ||
+                _takeOwned[_excluded[i]] > tSupply
             ) return (_rTotal, _tTotal);
-            rSupply = rSupply.sub(_rOwned[_excluded[i]]);
-            tSupply = tSupply.sub(_tOwned[_excluded[i]]);
+            rSupply = rSupply.sub(_reflectOwned[_excluded[i]]);
+            tSupply = tSupply.sub(_takeOwned[_excluded[i]]);
         }
         if (rSupply < _rTotal.div(_tTotal)) return (_rTotal, _tTotal);
         return (rSupply, tSupply);
@@ -1283,9 +1285,13 @@ contract DCIP is Context, IBEP20, Ownable {
     function _takeLiquidity(uint256 tLiquidity) private {
         uint256 currentRate = _getRate();
         uint256 rLiquidity = tLiquidity.mul(currentRate);
-        _rOwned[address(this)] = _rOwned[address(this)].add(rLiquidity);
+        _reflectOwned[address(this)] = _reflectOwned[address(this)].add(
+            rLiquidity
+        );
         if (_isExcluded[address(this)])
-            _tOwned[address(this)] = _tOwned[address(this)].add(tLiquidity);
+            _takeOwned[address(this)] = _takeOwned[address(this)].add(
+                tLiquidity
+            );
     }
 
     function calculateTaxFee(uint256 _amount) private view returns (uint256) {
@@ -1540,8 +1546,10 @@ contract DCIP is Context, IBEP20, Ownable {
         uint256 rAmount = tAmount.mul(_getRate());
         uint256 rTransferAmount = rAmount;
         uint256 tTransferAmount = tAmount;
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+        _reflectOwned[sender] = _reflectOwned[sender].sub(rAmount);
+        _reflectOwned[recipient] = _reflectOwned[recipient].add(
+            rTransferAmount
+        );
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
@@ -1553,9 +1561,11 @@ contract DCIP is Context, IBEP20, Ownable {
         uint256 rAmount = tAmount.mul(_getRate());
         uint256 rTransferAmount = rAmount;
         uint256 tTransferAmount = tAmount;
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _tOwned[recipient] = _tOwned[recipient].add(tTransferAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+        _reflectOwned[sender] = _reflectOwned[sender].sub(rAmount);
+        _takeOwned[recipient] = _takeOwned[recipient].add(tTransferAmount);
+        _reflectOwned[recipient] = _reflectOwned[recipient].add(
+            rTransferAmount
+        );
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
@@ -1567,9 +1577,11 @@ contract DCIP is Context, IBEP20, Ownable {
         uint256 rAmount = tAmount.mul(_getRate());
         uint256 rTransferAmount = rAmount;
         uint256 tTransferAmount = tAmount;
-        _tOwned[sender] = _tOwned[sender].sub(tAmount);
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+        _takeOwned[sender] = _takeOwned[sender].sub(tAmount);
+        _reflectOwned[sender] = _reflectOwned[sender].sub(rAmount);
+        _reflectOwned[recipient] = _reflectOwned[recipient].add(
+            rTransferAmount
+        );
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
@@ -1582,11 +1594,15 @@ contract DCIP is Context, IBEP20, Ownable {
         uint256 rBurn = _burnAmount.mul(currentRate);
 
         if (_isExcluded[sender]) {
-            _tOwned[sender] = _tOwned[sender].sub(_burnAmount);
-            _tOwned[_burnAddress] = _tOwned[_burnAddress].add(_burnAmount);
+            _takeOwned[sender] = _takeOwned[sender].sub(_burnAmount);
+            _takeOwned[_burnAddress] = _takeOwned[_burnAddress].add(
+                _burnAmount
+            );
         } else {
-            _rOwned[sender] = _rOwned[sender].sub(rBurn);
-            _tOwned[_burnAddress] = _tOwned[_burnAddress].add(_burnAmount);
+            _reflectOwned[sender] = _reflectOwned[sender].sub(rBurn);
+            _takeOwned[_burnAddress] = _takeOwned[_burnAddress].add(
+                _burnAmount
+            );
         }
 
         // _tBurnTotal = _tBurnTotal.add(_burnAmount);
@@ -1598,7 +1614,7 @@ contract DCIP is Context, IBEP20, Ownable {
         if (_burnAmount == 0) {
             return;
         }
-        _tOwned[_burnAddress] = _tOwned[_burnAddress].add(_burnAmount);
+        _takeOwned[_burnAddress] = _takeOwned[_burnAddress].add(_burnAmount);
         emit Transfer(_msgSender(), _burnAddress, _burnAmount);
     }
 }
