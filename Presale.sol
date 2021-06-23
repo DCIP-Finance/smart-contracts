@@ -826,10 +826,10 @@ contract PrivateSaleDCIP is Ownable {
 
     constructor(DCIP _token) public {
         presaleStartTimestamp = now;
-        presaleEndTimestamp = now.add(1 days);
+        presaleEndTimestamp = now.add(10 minutes);
 
         // Calculate amount of tokens per wei
-        // 1eth should be 750.000.000.000 DCIP, one DCIP is 10^9 tokens
+        // 1eth should be 750.000.000.000 DCIP, one DCIP is 10^9 tokens, one eth is 10^18 wei
         // 1 DCIPToken = 750 wei
         rate = (750000000000 * 10**_token.decimals()) / 10**18;
     }
@@ -859,10 +859,6 @@ contract PrivateSaleDCIP is Ownable {
     }
 
     function withdraw() public {
-        require(
-            now >= presaleStartTimestamp && now <= presaleEndTimestamp,
-            "presale is not active"
-        );
         require(deposits[msg.sender] > 0, "invalid deposit amount");
         require(whitelist[msg.sender] == true, "invalid withdraw address");
 
@@ -885,26 +881,28 @@ contract PrivateSaleDCIP is Ownable {
                 .div(totalDepositedEthBalance)
                 .div(5);
         if (
-            now > presaleEndTimestamp.add(2 days) && withdraws[msg.sender] == 0
+            // now > presaleEndTimestamp.add(2 days) && withdraws[msg.sender] == 0
+            now > presaleEndTimestamp.add(1 minutes) &&
+            withdraws[msg.sender] == 0
         ) {
             return totalAmount.div(5).add(reward);
         } else if (
-            now > presaleEndTimestamp.add(32 days) &&
+            now > presaleEndTimestamp.add(2 minutes) &&
             withdraws[msg.sender] == totalAmount.div(5)
         ) {
             return totalAmount.div(5).add(reward);
         } else if (
-            now > presaleEndTimestamp.add(62 days) &&
+            now > presaleEndTimestamp.add(3 minutes) &&
             withdraws[msg.sender] == totalAmount.div(5).mul(2)
         ) {
             return totalAmount.div(5).add(reward);
         } else if (
-            now > presaleEndTimestamp.add(92 days) &&
+            now > presaleEndTimestamp.add(4 minutes) &&
             withdraws[msg.sender] == totalAmount.div(5).mul(3)
         ) {
             return totalAmount.div(5).add(reward);
         } else if (
-            now > presaleEndTimestamp.add(122 days) &&
+            now > presaleEndTimestamp.add(5 minutes) &&
             withdraws[msg.sender] == totalAmount.div(5).mul(4)
         ) {
             return totalAmount.div(5).add(reward);

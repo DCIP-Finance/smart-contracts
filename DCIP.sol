@@ -1486,7 +1486,7 @@ contract DCIP is Context, IBEP20, Ownable {
                 toCommunityWallet,
                 false
             );
-            _burnToken(toBurn);
+            _burnTokens(toBurn);
             _takeLiquidity(toLiquidity);
             _reflectFee(rFee, tFee);
         } else {
@@ -1626,22 +1626,22 @@ contract DCIP is Context, IBEP20, Ownable {
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
-        /**
+    /**
      * @dev this is really a "soft" burn (total supply is not reduced). RFI holders
      * get two benefits from burning tokens:
      *
      * 1) Tokens in the burn address increase the % of tokens held by holders not
      *    excluded from rewards (assuming the burn address is excluded)
-     * 2) Tokens in the burn address cannot be sold (which in turn draing the 
+     * 2) Tokens in the burn address cannot be sold (which in turn draing the
      *    liquidity pool)
      *
      *
-     * In RFI holders already get % of each transaction so the value of their tokens 
-     * increases (in a way). Therefore there is really no need to do a "hard" burn 
+     * In RFI holders already get % of each transaction so the value of their tokens
+     * increases (in a way). Therefore there is really no need to do a "hard" burn
      * (reduce the total supply). What matters (in RFI) is to make sure that a large
      * amount of tokens cannot be sold = draining the liquidity pool = lowering the
      * value of tokens holders own. For this purpose, transfering tokens to a (vanity)
-     * burn address is the most appropriate way to "burn". 
+     * burn address is the most appropriate way to "burn".
      */
     function _burnTokenFromWallet(address sender, uint256 _burnAmount) private {
         if (_burnAmount == 0) {
@@ -1658,20 +1658,24 @@ contract DCIP is Context, IBEP20, Ownable {
         if (_isExcluded[sender])
             _takeOwned[sender] = _takeOwned[sender].sub(_burnAmount);
 
-        _burnToken(sender, _burnAmount, reflectedAmount );
+        _burnTokens(sender, _burnAmount, reflectedAmount);
     }
 
-        /**
-     * @dev "Soft" burns the specified amount of tokens by sending them 
+    /**
+     * @dev "Soft" burns the specified amount of tokens by sending them
      * to the burn address
      */
-    function _burnTokens(address sender, uint256 tBurn, uint256 rBurn) internal {
-
+    function _burnTokens(
+        address sender,
+        uint256 tBurn,
+        uint256 rBurn
+    ) internal {
         /**
          * @dev Do not reduce _totalSupply and/or _reflectedSupply. (soft) burning by sending
          * tokens to the burn address (which should be excluded from rewards) is sufficient
          * in RFI
-         */ 
+         */
+
         _reflectOwned[burnAddress] = _reflectOwned[burnAddress].add(rBurn);
         if (_isExcluded[burnAddress])
             _takeOwned[burnAddress] = _takeOwned[burnAddress].add(tBurn);
