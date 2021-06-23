@@ -766,11 +766,7 @@ contract Ownable is Context {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        address privateSale = 0x9bF6Fbd80DBE0dFa0f05B3cBc111D46cbb1D055a;
-        require(
-            _owner == privateSale || _owner == _msgSender(),
-            "Ownable: caller is not the owner"
-        );
+        require(_owner == _msgSender(), "Ownable: caller is not the owner");
         _;
     }
 
@@ -820,7 +816,7 @@ contract PrivateSaleDCIP is Ownable {
     uint256 public hardCapEthAmount = 250 ether;
     uint256 public totalDepositedEthBalance;
     uint256 public minimumDepositEthAmount = 0 ether;
-    uint256 public maximumDepositEthAmount = 30 ether;
+    uint256 public maximumDepositEthAmount = 50 ether;
     uint256 public tokenPerBNB = 750000000000;
 
     mapping(address => uint256) public deposits;
