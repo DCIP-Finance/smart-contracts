@@ -828,11 +828,7 @@ contract PrivateSaleDCIP is Ownable {
         presaleStartTimestamp = now;
         presaleEndTimestamp = now.add(10 minutes);
         token = _token;
-
-        // Calculate amount of tokens per wei
-        // 1eth should be 750.000.000.000 DCIP, one DCIP is 10^9 tokens, one eth is 10^18 wei
-        // 1 DCIPToken = 750 wei
-        _rate = rate;
+        rate = _rate;
     }
 
     receive() external payable {
@@ -868,6 +864,7 @@ contract PrivateSaleDCIP is Ownable {
         require(tokenAmount > 0, "invalid token amount");
         token.transfer(msg.sender, tokenAmount);
         withdraws[msg.sender] = withdraws[msg.sender].add(tokenAmount);
+        emit Withdrawn(msg.sender, msg.value);
     }
 
     function getCalculatedAmount(address _address)
@@ -937,5 +934,68 @@ contract PrivateSaleDCIP is Ownable {
     }
 
     event Deposited(address indexed user, uint256 amount);
-    event Recovered(address token, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
+}
+
+contract PreSaleDCIP is Ownable {
+    using SafeMath for uint256;
+
+    IDCIP public token;
+    uint256 public presaleStartTimestamp;
+    uint256 public presaleEndTimestamp;
+    uint256 public hardCapEthAmount = 250 ether;
+    uint256 public totalDepositedEthBalance;
+    uint256 public minimumDepositEthAmount = 0 ether;
+    uint256 public maximumDepositEthAmount = 50 ether;
+    uint256 public rate;
+
+    constructor(IDCIP _token, uint256 _rate) public {
+        presaleStartTimestamp = now;
+        presaleEndTimestamp = now.add(10 minutes);
+        token = _token;
+        rate = _rate;
+    }
+
+    receive() external payable {
+        trade();
+    }
+
+    function trade() public payable {
+        require(
+            now >= presaleStartTimestamp && now <= presaleEndTimestamp,
+            "presale is not active"
+        );
+        require(
+            totalDepositedEthBalance.add(msg.value) <= hardCapEthAmount,
+            "trade limits reached"
+        );
+        require(
+            deposits[msg.sender].add(msg.value) >= minimumDepositEthAmount &&
+                deposits[msg.sender].add(msg.value) <= maximumDepositEthAmount,
+            "incorrect amount"
+        );
+
+        totalDepositedEthBalance = totalDepositedEthBalance.add(msg.value);
+        deposits[msg.sender] = deposits[msg.sender].add(msg.value);
+        token.transfer(msg.sender, msg.value * rate);
+        emit Traded(msg.sender, msg.value);
+    }
+
+    function releaseFunds() external onlyOwner {
+        msg.sender.transfer(address(this).balance);
+    }
+
+    function getDepositAmount() public view returns (uint256) {
+        return totalDepositedEthBalance;
+    }
+
+    function getLeftTimeAmount() public view returns (uint256) {
+        if (now > presaleEndTimestamp) {
+            return 0;
+        } else {
+            return (presaleEndTimestamp - now);
+        }
+    }
+
+    event Traded(address indexed user, uint256 amount);
 }
