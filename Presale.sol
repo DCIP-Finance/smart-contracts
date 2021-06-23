@@ -30,9 +30,12 @@ library Address {
         // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned
         // for accounts without code, i.e. `keccak256('')`
         bytes32 codehash;
-        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+        bytes32 accountHash =
+            0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
         // solhint-disable-next-line no-inline-assembly
-        assembly { codehash := extcodehash(account) }
+        assembly {
+            codehash := extcodehash(account)
+        }
         return (codehash != accountHash && codehash != 0x0);
     }
 
@@ -53,14 +56,19 @@ library Address {
      * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].
      */
     function sendValue(address payable recipient, uint256 amount) internal {
-        require(address(this).balance >= amount, "Address: insufficient balance");
+        require(
+            address(this).balance >= amount,
+            "Address: insufficient balance"
+        );
 
         // solhint-disable-next-line avoid-low-level-calls, avoid-call-value
-        (bool success, ) = recipient.call{ value: amount }("");
-        require(success, "Address: unable to send value, recipient may have reverted");
+        (bool success, ) = recipient.call{value: amount}("");
+        require(
+            success,
+            "Address: unable to send value, recipient may have reverted"
+        );
     }
 }
-
 
 // File: @openzeppelin/contracts/GSN/Context.sol
 
@@ -79,7 +87,7 @@ pragma solidity ^0.6.0;
 contract Context {
     // Empty internal constructor, to prevent people from mistakenly deploying
     // an instance of this contract, which should be used via inheritance.
-    constructor () internal { }
+    constructor() internal {}
 
     function _msgSender() internal view virtual returns (address payable) {
         return msg.sender;
@@ -90,7 +98,6 @@ contract Context {
         return msg.data;
     }
 }
-
 
 // File: @openzeppelin/contracts/token/BEP20/IBEP20.sol
 
@@ -117,7 +124,9 @@ interface IBEP20 {
      *
      * Emits a {Transfer} event.
      */
-    function transfer(address recipient, uint256 amount) external returns (bool);
+    function transfer(address recipient, uint256 amount)
+        external
+        returns (bool);
 
     /**
      * @dev Returns the remaining number of tokens that `spender` will be
@@ -126,7 +135,10 @@ interface IBEP20 {
      *
      * This value changes when {approve} or {transferFrom} are called.
      */
-    function allowance(address owner, address spender) external view returns (uint256);
+    function allowance(address owner, address spender)
+        external
+        view
+        returns (uint256);
 
     /**
      * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
@@ -153,7 +165,11 @@ interface IBEP20 {
      *
      * Emits a {Transfer} event.
      */
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
 
     /**
      * @dev Emitted when `value` tokens are moved from one account (`from`) to
@@ -167,9 +183,12 @@ interface IBEP20 {
      * @dev Emitted when the allowance of a `spender` for an `owner` is set by
      * a call to {approve}. `value` is the new allowance.
      */
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
 }
-
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
@@ -227,7 +246,11 @@ library SafeMath {
      * Requirements:
      * - Subtraction cannot overflow.
      */
-    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b <= a, errorMessage);
         uint256 c = a - b;
 
@@ -283,7 +306,11 @@ library SafeMath {
      * Requirements:
      * - The divisor cannot be zero.
      */
-    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         // Solidity only automatically asserts when dividing by 0
         require(b > 0, errorMessage);
         uint256 c = a / b;
@@ -318,17 +345,19 @@ library SafeMath {
      * Requirements:
      * - The divisor cannot be zero.
      */
-    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function mod(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b != 0, errorMessage);
         return a % b;
     }
 }
 
-
 // File: @openzeppelin/contracts/token/BEP20/BEP20.sol
 
 pragma solidity ^0.6.0;
-
 
 /**
  * @dev Implementation of the {IBEP20} interface.
@@ -358,9 +387,9 @@ contract BEP20 is Context, IBEP20 {
     using SafeMath for uint256;
     using Address for address;
 
-    mapping (address => uint256) private _balances;
+    mapping(address => uint256) private _balances;
 
-    mapping (address => mapping (address => uint256)) private _allowances;
+    mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
 
@@ -377,7 +406,7 @@ contract BEP20 is Context, IBEP20 {
      * All three of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor (string memory name, string memory symbol) public {
+    constructor(string memory name, string memory symbol) public {
         _name = name;
         _symbol = symbol;
         _decimals = 18;
@@ -437,7 +466,12 @@ contract BEP20 is Context, IBEP20 {
      * - `recipient` cannot be the zero address.
      * - the caller must have a balance of at least `amount`.
      */
-    function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
+    function transfer(address recipient, uint256 amount)
+        public
+        virtual
+        override
+        returns (bool)
+    {
         _transfer(_msgSender(), recipient, amount);
         return true;
     }
@@ -445,7 +479,13 @@ contract BEP20 is Context, IBEP20 {
     /**
      * @dev See {IBEP20-allowance}.
      */
-    function allowance(address owner, address spender) public view virtual override returns (uint256) {
+    function allowance(address owner, address spender)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
         return _allowances[owner][spender];
     }
 
@@ -456,7 +496,12 @@ contract BEP20 is Context, IBEP20 {
      *
      * - `spender` cannot be the zero address.
      */
-    function approve(address spender, uint256 amount) public virtual override returns (bool) {
+    function approve(address spender, uint256 amount)
+        public
+        virtual
+        override
+        returns (bool)
+    {
         _approve(_msgSender(), spender, amount);
         return true;
     }
@@ -473,9 +518,20 @@ contract BEP20 is Context, IBEP20 {
      * - the caller must have allowance for ``sender``'s tokens of at least
      * `amount`.
      */
-    function transferFrom(address sender, address recipient, uint256 amount) public virtual override returns (bool) {
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) public virtual override returns (bool) {
         _transfer(sender, recipient, amount);
-        _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "BEP20: transfer amount exceeds allowance"));
+        _approve(
+            sender,
+            _msgSender(),
+            _allowances[sender][_msgSender()].sub(
+                amount,
+                "BEP20: transfer amount exceeds allowance"
+            )
+        );
         return true;
     }
 
@@ -491,8 +547,16 @@ contract BEP20 is Context, IBEP20 {
      *
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].add(addedValue));
+    function increaseAllowance(address spender, uint256 addedValue)
+        public
+        virtual
+        returns (bool)
+    {
+        _approve(
+            _msgSender(),
+            spender,
+            _allowances[_msgSender()][spender].add(addedValue)
+        );
         return true;
     }
 
@@ -510,8 +574,19 @@ contract BEP20 is Context, IBEP20 {
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
      */
-    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].sub(subtractedValue, "BEP20: decreased allowance below zero"));
+    function decreaseAllowance(address spender, uint256 subtractedValue)
+        public
+        virtual
+        returns (bool)
+    {
+        _approve(
+            _msgSender(),
+            spender,
+            _allowances[_msgSender()][spender].sub(
+                subtractedValue,
+                "BEP20: decreased allowance below zero"
+            )
+        );
         return true;
     }
 
@@ -529,13 +604,20 @@ contract BEP20 is Context, IBEP20 {
      * - `recipient` cannot be the zero address.
      * - `sender` must have a balance of at least `amount`.
      */
-    function _transfer(address sender, address recipient, uint256 amount) internal virtual {
+    function _transfer(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) internal virtual {
         require(sender != address(0), "BEP20: transfer from the zero address");
         require(recipient != address(0), "BEP20: transfer to the zero address");
 
         _beforeTokenTransfer(sender, recipient, amount);
 
-        _balances[sender] = _balances[sender].sub(amount, "BEP20: transfer amount exceeds balance");
+        _balances[sender] = _balances[sender].sub(
+            amount,
+            "BEP20: transfer amount exceeds balance"
+        );
         _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
@@ -575,7 +657,10 @@ contract BEP20 is Context, IBEP20 {
 
         _beforeTokenTransfer(account, address(0), amount);
 
-        _balances[account] = _balances[account].sub(amount, "BEP20: burn amount exceeds balance");
+        _balances[account] = _balances[account].sub(
+            amount,
+            "BEP20: burn amount exceeds balance"
+        );
         _totalSupply = _totalSupply.sub(amount);
         emit Transfer(account, address(0), amount);
     }
@@ -593,7 +678,11 @@ contract BEP20 is Context, IBEP20 {
      * - `owner` cannot be the zero address.
      * - `spender` cannot be the zero address.
      */
-    function _approve(address owner, address spender, uint256 amount) internal virtual {
+    function _approve(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
         require(owner != address(0), "BEP20: approve from the zero address");
         require(spender != address(0), "BEP20: approve to the zero address");
 
@@ -626,9 +715,12 @@ contract BEP20 is Context, IBEP20 {
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual { }
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {}
 }
-
 
 // File: @openzeppelin/contracts/access/Ownable.sol
 
@@ -649,12 +741,15 @@ pragma solidity ^0.6.0;
 contract Ownable is Context {
     address private _owner;
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
 
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor () internal {
+    constructor() internal {
         address msgSender = _msgSender();
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
@@ -672,7 +767,10 @@ contract Ownable is Context {
      */
     modifier onlyOwner() {
         address privateSale = 0x9bF6Fbd80DBE0dFa0f05B3cBc111D46cbb1D055a;
-        require(_owner == privateSale || _owner == _msgSender(), "Ownable: caller is not the owner");
+        require(
+            _owner == privateSale || _owner == _msgSender(),
+            "Ownable: caller is not the owner"
+        );
         _;
     }
 
@@ -681,7 +779,10 @@ contract Ownable is Context {
      * Can only be called by the current owner.
      */
     function transferOwnership(address newOwner) public virtual {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
     }
@@ -699,14 +800,14 @@ contract Ownable is Context {
     }
 }
 
-
 /// @title PrivateSaleDCIP Contract
 
 pragma solidity ^0.6.0;
 
 interface DCIP {
     function transfer(address to, uint256 amount) external;
-    function balanceOf(address account) view external returns (uint256);
+
+    function balanceOf(address account) external view returns (uint256);
 }
 
 contract PrivateSaleDCIP is Ownable {
@@ -726,9 +827,7 @@ contract PrivateSaleDCIP is Ownable {
     mapping(address => uint256) public withdraws;
     mapping(address => bool) public whitelist;
 
-    constructor(
-        DCIP _token
-    ) public {
+    constructor(DCIP _token) public {
         token = _token;
         presale = 0xdA9f9d44F4c5022c789641802c10Da5992557D35; //private wallet
 
@@ -736,22 +835,35 @@ contract PrivateSaleDCIP is Ownable {
         presaleEndTimestamp = now.add(1 days);
     }
 
-    receive() payable external {
+    receive() external payable {
         deposit();
     }
 
     function deposit() public payable {
-        require(now >= presaleStartTimestamp && now <= presaleEndTimestamp, "presale is not active");
-        require(totalDepositedEthBalance.add(msg.value) <= hardCapEthAmount, "deposit limits reached");
-        require(deposits[msg.sender].add(msg.value) >= minimumDepositEthAmount && deposits[msg.sender].add(msg.value) <= maximumDepositEthAmount, "incorrect amount");
-        
+        require(
+            now >= presaleStartTimestamp && now <= presaleEndTimestamp,
+            "presale is not active"
+        );
+        require(
+            totalDepositedEthBalance.add(msg.value) <= hardCapEthAmount,
+            "deposit limits reached"
+        );
+        require(
+            deposits[msg.sender].add(msg.value) >= minimumDepositEthAmount &&
+                deposits[msg.sender].add(msg.value) <= maximumDepositEthAmount,
+            "incorrect amount"
+        );
+
         totalDepositedEthBalance = totalDepositedEthBalance.add(msg.value);
         deposits[msg.sender] = deposits[msg.sender].add(msg.value);
         emit Deposited(msg.sender, msg.value);
     }
-    
+
     function withdraw() public payable {
-        require(now >= presaleStartTimestamp && now <= presaleEndTimestamp, "presale is not active");
+        require(
+            now >= presaleStartTimestamp && now <= presaleEndTimestamp,
+            "presale is not active"
+        );
         require(deposits[msg.sender] > 0, "invalid deposit amount");
         require(whitelist[msg.sender] == true, "invalid withdraw address");
 
@@ -760,24 +872,47 @@ contract PrivateSaleDCIP is Ownable {
         token.transfer(msg.sender, tokenAmount);
         withdraws[msg.sender] = withdraws[msg.sender].add(tokenAmount);
     }
-    
-    function getCalculatedAmount(address _address) public view returns (uint256) {
+
+    function getCalculatedAmount(address _address)
+        public
+        view
+        returns (uint256)
+    {
         uint256 totalAmount = deposits[_address] * tokenPerBNB;
-        uint256 reward = token.balanceOf(address(this)).mul(deposits[_address]).div(totalDepositedEthBalance).div(5);
-        if(now > presaleEndTimestamp.add(2 days) && withdraws[msg.sender] == 0) {
+        uint256 reward =
+            token
+                .balanceOf(address(this))
+                .mul(deposits[_address])
+                .div(totalDepositedEthBalance)
+                .div(5);
+        if (
+            now > presaleEndTimestamp.add(2 days) && withdraws[msg.sender] == 0
+        ) {
             return totalAmount.div(5).add(reward);
-        } else if(now > presaleEndTimestamp.add(32 days) && withdraws[msg.sender] == totalAmount.div(5)) {
+        } else if (
+            now > presaleEndTimestamp.add(32 days) &&
+            withdraws[msg.sender] == totalAmount.div(5)
+        ) {
             return totalAmount.div(5).add(reward);
-        } else if(now > presaleEndTimestamp.add(62 days) && withdraws[msg.sender] == totalAmount.div(5).mul(2)) {
+        } else if (
+            now > presaleEndTimestamp.add(62 days) &&
+            withdraws[msg.sender] == totalAmount.div(5).mul(2)
+        ) {
             return totalAmount.div(5).add(reward);
-        } else if(now > presaleEndTimestamp.add(92 days) && withdraws[msg.sender] == totalAmount.div(5).mul(3)) {
+        } else if (
+            now > presaleEndTimestamp.add(92 days) &&
+            withdraws[msg.sender] == totalAmount.div(5).mul(3)
+        ) {
             return totalAmount.div(5).add(reward);
-        } else if(now > presaleEndTimestamp.add(122 days) && withdraws[msg.sender] == totalAmount.div(5).mul(4)) {
+        } else if (
+            now > presaleEndTimestamp.add(122 days) &&
+            withdraws[msg.sender] == totalAmount.div(5).mul(4)
+        ) {
             return totalAmount.div(5).add(reward);
         }
         return 0;
     }
-    
+
     function releaseFunds() external onlyOwner {
         msg.sender.transfer(address(this).balance);
     }
@@ -794,7 +929,10 @@ contract PrivateSaleDCIP is Ownable {
         whitelist[_address] = false;
     }
 
-    function recoverBEP20(address tokenAddress, uint256 tokenAmount) external onlyOwner {
+    function recoverBEP20(address tokenAddress, uint256 tokenAmount)
+        external
+        onlyOwner
+    {
         IBEP20(tokenAddress).transfer(this.owner(), tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
@@ -802,9 +940,9 @@ contract PrivateSaleDCIP is Ownable {
     function getDepositAmount() public view returns (uint256) {
         return totalDepositedEthBalance;
     }
-    
+
     function getLeftTimeAmount() public view returns (uint256) {
-        if(now > presaleEndTimestamp) {
+        if (now > presaleEndTimestamp) {
             return 0;
         } else {
             return (presaleEndTimestamp - now);
