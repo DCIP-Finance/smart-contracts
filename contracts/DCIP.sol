@@ -912,7 +912,7 @@ contract DCIP is Context, IBEP20, Ownable {
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
-    string private _name = "DCIP";
+    string private _name = "Decentralized community investment protocol";
     string private _symbol = "DCIP";
     uint8 private _decimals = 9;
 

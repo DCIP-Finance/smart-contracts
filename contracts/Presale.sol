@@ -774,7 +774,7 @@ contract Ownable is Context {
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      * Can only be called by the current owner.
      */
-    function transferOwnership(address newOwner) public virtual {
+    function transferOwnership(address newOwner) public virtual onlyOwner {
         require(
             newOwner != address(0),
             "Ownable: new owner is the zero address"
@@ -824,7 +824,7 @@ contract PrivateSaleDCIP is Ownable {
     mapping(address => uint256) public withdraws;
     mapping(address => bool) public whitelist;
 
-    constructor(IDCIP _token) public {
+    constructor(IDCIP _token, uint256 _rate) public {
         presaleStartTimestamp = now;
         presaleEndTimestamp = now.add(10 minutes);
         token = _token;
@@ -832,7 +832,7 @@ contract PrivateSaleDCIP is Ownable {
         // Calculate amount of tokens per wei
         // 1eth should be 750.000.000.000 DCIP, one DCIP is 10^9 tokens, one eth is 10^18 wei
         // 1 DCIPToken = 750 wei
-        rate = 750000000000 * (10**uint256(token.decimals()) / 10**18);
+        _rate = rate;
     }
 
     receive() external payable {
