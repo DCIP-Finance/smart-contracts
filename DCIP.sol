@@ -1149,6 +1149,13 @@ contract DCIP is Context, IBEP20, Ownable {
 
     function includeInReward(address account) external onlyOwner() {
         require(_isExcluded[account], "Account is already included");
+
+        // This is a fictional boundary to prevent out of gass exceptions in the loop below. The excluded list should be tiny.
+        require(
+            _excluded.length < 1000,
+            "There are too many excluded addresses"
+        );
+
         require(
             !_isForeverExcludedFromReward[account],
             "Account can not be included"
@@ -1285,6 +1292,12 @@ contract DCIP is Context, IBEP20, Ownable {
     }
 
     function _getCurrentSupply() private view returns (uint256, uint256) {
+        // This is a fictional boundary to prevent out of gass exceptions in the loop below. The excluded list should be tiny.
+        require(
+            _excluded.length < 1000,
+            "There are too many excluded addresses"
+        );
+
         uint256 rSupply = _rTotal;
         uint256 tSupply = _tTotal;
         for (uint256 i = 0; i < _excluded.length; i++) {
