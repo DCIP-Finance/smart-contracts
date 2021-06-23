@@ -826,7 +826,7 @@ contract PrivateSaleDCIP is Ownable {
 
     constructor(IDCIP _token, uint256 _rate) public {
         presaleStartTimestamp = now;
-        presaleEndTimestamp = now.add(10 minutes);
+        presaleEndTimestamp = now.add(4 minutes);
         token = _token;
         rate = _rate;
     }
@@ -867,20 +867,30 @@ contract PrivateSaleDCIP is Ownable {
         emit Withdrawn(msg.sender, tokenAmount);
     }
 
+    function debugBalanceOfContract() 
+    public
+    view
+    returns (uint256)
+    {
+        return
+            token
+            .balanceOf(address(this));
+    }
+
     function debugReward(address _address) 
     public
     view
     returns (uint256)
     {
         return
-                    token
-                    .balanceOf(address(this))
-                    .mul(deposits[_address])
-                    .div(totalDepositedEthBalance)
-                    .div(5);
+            token
+                .balanceOf(address(this))
+                .mul(deposits[_address])
+                .div(totalDepositedEthBalance)
+                .div(5);
     }
 
-    function debugTotalAmount(address _address) 
+    function debugTotalAmountDividedBy(address _address) 
     public
     view
     returns (uint256)
@@ -888,12 +898,29 @@ contract PrivateSaleDCIP is Ownable {
         return deposits[_address] / rate;
     }
 
+    function debugTotalAmountMultipliedBy(address _address) 
+    public
+    view
+    returns (uint256)
+    {
+        return deposits[_address] * rate;
+    }
+
+    function debugTotalAmountJaspersMagic(address _address) 
+    public
+    view
+    returns (uint256)
+    {
+        return (deposits[_address] / 10**18) * (750000000 * token.decimals());
+    }
+
     function getCalculatedAmount(address _address)
         public
         view
         returns (uint256)
     {
-        uint256 totalAmount = deposits[_address] / rate;
+        uint256 totalAmount =
+            (deposits[_address] / 10**18) * (750000000 * token.decimals());
         uint256 reward =
             token
                 .balanceOf(address(this))
