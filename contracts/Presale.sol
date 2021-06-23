@@ -875,6 +875,22 @@ contract PrivateSaleDCIP is Ownable {
         return token.balanceOf(address(this));
     }
 
+    function debugWeiPrt1(uint256 twei) public view returns (uint256) {
+        return twei.div(10**18);
+    }
+
+    function debugWeiPrt2() public view returns (uint256) {
+        return rate.mul(10**uint256(token.decimals()));
+    }
+
+    function tokenDecimals() public view returns (uint256) {
+        return token.decimals();
+    }
+
+    function tokenDecimalsCasted() public view returns (uint256) {
+        return uint256(token.decimals());
+    }
+
     function debugReward(address _address) public view returns (uint256) {
         return
             token
@@ -882,30 +898,6 @@ contract PrivateSaleDCIP is Ownable {
                 .mul(deposits[_address])
                 .div(totalDepositedEthBalance)
                 .div(5);
-    }
-
-    function debugTotalAmountDividedBy(address _address)
-        public
-        view
-        returns (uint256)
-    {
-        return deposits[_address] / rate;
-    }
-
-    function debugTotalAmountMultipliedBy(address _address)
-        public
-        view
-        returns (uint256)
-    {
-        return deposits[_address] * rate;
-    }
-
-    function debugTotalAmountJaspersMagic(address _address)
-        public
-        view
-        returns (uint256)
-    {
-        return (deposits[_address] / 10**18) * (750000000 * token.decimals());
     }
 
     function getCalculatedAmount(address _address)
