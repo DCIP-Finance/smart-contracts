@@ -864,7 +864,7 @@ contract PrivateSaleDCIP is Ownable {
         require(tokenAmount > 0, "invalid token amount");
         token.transfer(msg.sender, tokenAmount);
         withdraws[msg.sender] = withdraws[msg.sender].add(tokenAmount);
-        emit Withdrawn(msg.sender, msg.value);
+        emit Withdrawn(msg.sender, tokenAmount);
     }
 
     function debugReward(address _address) 
@@ -962,6 +962,10 @@ contract PrivateSaleDCIP is Ownable {
 
 contract PreSaleDCIP is Ownable {
     using SafeMath for uint256;
+
+    mapping(address => uint256) public deposits;
+    mapping(address => uint256) public withdraws;
+    mapping(address => bool) public whitelist;
 
     IDCIP public token;
     uint256 public presaleStartTimestamp;
