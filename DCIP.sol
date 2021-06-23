@@ -1372,6 +1372,7 @@ contract DCIP is Context, IBEP20, Ownable {
         require(to != address(0), "BEP20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
 
+        // fixme: Why is this a thing?
         if (from != owner() && to != owner())
             require(
                 amount <= _maxTxAmount,
@@ -1570,12 +1571,6 @@ contract DCIP is Context, IBEP20, Ownable {
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         emit Transfer(sender, recipient, tTransferAmount);
-    }
-
-    function burn(address sender, uint256 _burnAmount) external onlyOwner {
-        require(sender != address(0), "BEP 20: burn from the zero address");
-
-        _burnTokenFromWallet(sender, _burnAmount);
     }
 
     function _burnTokenFromWallet(address sender, uint256 _burnAmount) private {
