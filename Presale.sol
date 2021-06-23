@@ -929,14 +929,6 @@ contract PrivateSaleDCIP is Ownable {
         whitelist[_address] = false;
     }
 
-    function recoverBEP20(address tokenAddress, uint256 tokenAmount)
-        external
-        onlyOwner
-    {
-        IBEP20(tokenAddress).transfer(this.owner(), tokenAmount);
-        emit Recovered(tokenAddress, tokenAmount);
-    }
-
     function getDepositAmount() public view returns (uint256) {
         return totalDepositedEthBalance;
     }
