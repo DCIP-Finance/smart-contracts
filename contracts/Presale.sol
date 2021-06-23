@@ -872,7 +872,7 @@ contract PrivateSaleDCIP is Ownable {
         view
         returns (uint256)
     {
-        uint256 totalAmount = deposits[_address] * rate;
+        uint256 totalAmount = deposits[_address] / rate;
         uint256 reward =
             token
                 .balanceOf(address(this))
@@ -977,7 +977,7 @@ contract PreSaleDCIP is Ownable {
 
         totalDepositedEthBalance = totalDepositedEthBalance.add(msg.value);
         deposits[msg.sender] = deposits[msg.sender].add(msg.value);
-        token.transfer(msg.sender, msg.value * rate);
+        token.transfer(msg.sender, msg.value / rate);
         emit Traded(msg.sender, msg.value);
     }
 
