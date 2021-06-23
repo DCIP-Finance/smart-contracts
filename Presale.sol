@@ -829,8 +829,9 @@ contract PrivateSaleDCIP is Ownable {
         presaleEndTimestamp = now.add(1 days);
 
         // Calculate amount of tokens per wei
-        // 1eth should be 750.000.000.000 DCIP, one DCIP is 10^8 tokens
-        rate = (750000000000 * 10**_token.decimals()) / 10**16;
+        // 1eth should be 750.000.000.000 DCIP, one DCIP is 10^9 tokens
+        // 1 DCIPToken = 750 wei
+        rate = (750000000000 * 10**_token.decimals()) / 10**18;
     }
 
     receive() external payable {
