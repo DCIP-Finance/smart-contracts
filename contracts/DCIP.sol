@@ -901,6 +901,7 @@ contract DCIP is Context, IBEP20, Ownable {
     mapping(address => mapping(address => uint256)) private _allowances;
 
     mapping(address => bool) private _isExcludedFromFee;
+    mapping(address => bool) private _isExcludedFromTxLimit;
 
     mapping(address => bool) private _isForeverExcludedFromReward;
 
@@ -1187,12 +1188,20 @@ contract DCIP is Context, IBEP20, Ownable {
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
+    function includeInFee(address account) public onlyOwner {
+        _isExcludedFromFee[account] = false;
+    }
+
     function excludeFromFee(address account) public onlyOwner {
         _isExcludedFromFee[account] = true;
     }
 
-    function includeInFee(address account) public onlyOwner {
-        _isExcludedFromFee[account] = false;
+    function IncludeFromTxLimit(address account) public onlyOwner {
+        _isExcludedFromTxLimit[account] = false;
+    }
+    
+    function ExcludeFromTxLimit(address account) public onlyOwner {
+        _isExcludedFromTxLimit[account] = true;
     }
 
     function setTaxFeePercent(uint256 taxFee) external onlyOwner() {
@@ -1394,6 +1403,10 @@ contract DCIP is Context, IBEP20, Ownable {
         return _isExcludedFromFee[account];
     }
 
+    function isExcludedFromTxLimit(address account) public view returns (bool) {
+        return _isExcludedFromTxLimit[account];
+    }
+
     function _approve(
         address owner,
         address spender,
@@ -1415,8 +1428,8 @@ contract DCIP is Context, IBEP20, Ownable {
         require(to != address(0), "BEP20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
 
-        // fixme: Why is this a thing?
-        if (from != owner() && to != owner())
+        // Exclude from txlimit for private sale and presale
+        if (from != owner() && to != owner() && !isExcludedFromTxLimit(from) && !isExcludedFromTxLimit(to))
             require(
                 amount <= _maxTxAmount,
                 "Transfer amount exceeds the maxTxAmount."

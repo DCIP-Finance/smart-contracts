@@ -913,7 +913,7 @@ contract PrivateSaleDCIP is Ownable {
         view
         returns (uint256)
     {
-        uint256 totalAmount = _tokensFromWei(deposits[_address]);
+        uint256 totalAmount = tokensFromWei(deposits[_address]);
 
         if (
             now > presaleEndTimestamp.add(1 minutes) &&
