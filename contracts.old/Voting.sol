@@ -4,29 +4,31 @@ pragma solidity >0.6.1 <0.7.0;
 
 import "./DCIP.sol";
 
+
 contract Ballot {
+    
     // This declares a new complex type which will
     // be used for variables later.
     // It will represent a single voter.
     using SafeMath for uint256;
-
+    
     struct Voter {
-        uint256 weight; // weight is accumulated by delegation
-        uint256 vote; // index of the voted proposal
-        mapping(uint256 => Proposal) proposals;
+        uint weight; // weight is accumulated by delegation
+        uint vote;   // index of the voted proposal
+        mapping(uint => Proposal) proposals;
     }
 
     // This is a type for a single proposal.
     struct Proposal {
-        uint256 id;
+        uint id;
         address proposer;
-        string name; // short name (up to 32 bytes)
-        string proposalType; // type of proposal (up to 32 bytes)
+        string name;   // short name (up to 32 bytes)
+        string proposalType;   // type of proposal (up to 32 bytes)
         mapping(address => bool) voted;
         mapping(address => Voter) voters;
-        uint256 votersCount; // number of accumulated votes
-        uint256 yeaVotePercent;
-        uint256 nayVotePercent;
+        uint votersCount; // number of accumulated votes
+        uint yeaVotePercent;
+        uint nayVotePercent;
         uint256 totalTokenInvested;
     }
 
@@ -34,14 +36,17 @@ contract Ballot {
     address public myToken;
     uint256 public totalSupplyOfMyToken;
 
+
     mapping(address => Voter) public voters;
+    
+    uint proposalCount;
 
-    uint256 proposalCount;
-
-    mapping(uint256 => Proposal) public proposals;
-
+    
+    mapping(uint => Proposal) public proposals;
+    
     uint256 public startedAt;
-
+    uint256 public endedAt;
+    
     modifier onlyEligibleVoter(address _voter) {
         require(IBEP20(myToken).balanceOf(_voter) > 0);
         _;
@@ -51,22 +56,23 @@ contract Ballot {
         require(msg.sender == chairperson);
         _;
     }
-
-    enum VotingState {Diactive, Active, Expired}
-
+    
+    
+    enum VotingState {
+        Diactive,
+        Active,
+        Expired
+    }
+    
     VotingState state;
-
-    event ProposalCreated(
-        uint256 id,
-        address proposer,
-        bytes32 name,
-        bytes32 proposalType
-    );
+    
+    event ProposalCreated(uint id, address proposer, bytes32 name, bytes32 proposalType);
     event VoteStarted();
     event VoteEnded();
+    
 
     /// Create a new ballot to choose one of `proposalNames`.
-
+    
     // bytes32[] memory proposalNames
     constructor(address _myToken) public {
         chairperson = msg.sender;
@@ -100,85 +106,69 @@ contract Ballot {
     //     require(voters[voter].weight == 0);
     //     voters[voter].weight = 1;
     // }
-
-    function propose(string memory _proposalName, string memory _proposalType)
-        public
-        onlyChairman
-        onlyEligibleVoter(msg.sender)
-    {
+    
+    function propose(string memory _proposalName, string memory _proposalType) public onlyChairman onlyEligibleVoter(msg.sender){
+        
         proposalCount++;
-        Proposal memory newProposal =
-            Proposal({
-                id: proposalCount,
-                proposer: msg.sender,
-                name: _proposalName,
-                proposalType: _proposalType,
-                votersCount: 0,
-                yeaVotePercent: 0,
-                nayVotePercent: 0,
-                totalTokenInvested: 0
-            });
-
+        Proposal memory newProposal = Proposal({
+            id: proposalCount,
+            proposer: msg.sender,
+            name: _proposalName,
+            proposalType: _proposalType,
+            votersCount: 0,
+            yeaVotePercent: 0,
+            nayVotePercent: 0,
+            totalTokenInvested: 0
+        });
+        
         proposals[newProposal.id] = newProposal;
     }
 
+    
+
     /// Give your vote (including votes delegated to you)
     /// to proposal `proposals[proposal].name`.
-    function vote(uint256 proposalID, bool isYea)
-        public
-        onlyEligibleVoter(msg.sender)
-    {
+    function vote(uint proposalID, bool isYea) public onlyEligibleVoter(msg.sender){
         require(state == VotingState.Active, "Voting has not been started.");
-        require(
-            block.timestamp > startedAt &&
-                block.timestamp < startedAt + 12 hours,
-            "Voting has been expired."
-        );
+        require(block.timestamp > startedAt && block.timestamp < startedAt + 12 hours, "Voting has been expired.");
         Voter storage _sender = voters[msg.sender];
         uint256 _voterTokenCount = IBEP20(myToken).balanceOf(msg.sender);
-
-        require(_voterTokenCount <= totalSupplyOfMyToken, "Balance cannot be greater than total supply");
+        
         _sender.weight = _voterTokenCount.div(totalSupplyOfMyToken);
-
+        
+        
         Proposal storage _proposal = proposals[proposalID];
-        require(
-            _proposal.voted[msg.sender] == false,
-            "You already have voted to this proposal."
-        );
-
-        _proposal.votersCount++;
+        require(_proposal.voted[msg.sender] == false, "You already have voted to this proposal.");
+        
+        _proposal.votersCount ++;
         _proposal.voters[msg.sender] = _sender;
         _proposal.voted[msg.sender] = true;
-        _proposal.totalTokenInvested = _proposal.totalTokenInvested.add(
-            _voterTokenCount
-        );
-
-        if (isYea) {
-            _proposal.yeaVotePercent = _proposal.nayVotePercent.add(
-                _voterTokenCount
-            );
-        } else {
-            _proposal.nayVotePercent = _proposal.nayVotePercent.add(
-                _voterTokenCount
-            );
+        _proposal.totalTokenInvested = _proposal.totalTokenInvested.add(_voterTokenCount);
+        
+        if (isYea){
+            _proposal.yeaVotePercent = _proposal.nayVotePercent.add(_voterTokenCount);
         }
-
+        else{
+            _proposal.nayVotePercent = _proposal.nayVotePercent.add(_voterTokenCount);
+        }
+        
         _sender.proposals[proposalID] = _proposal;
+        
     }
 
-    function startVoting() public onlyChairman {
-        require(
-            block.timestamp > startedAt + 12 hours,
-            "Previous voting has not been finished"
-        );
+    function startVoting() public onlyChairman{
+        require(block.timestamp > startedAt + 12 hours, "Previous voting has not been finished");
         startedAt = block.timestamp;
+        endedAt = startedAt + 12 hours;
         state = VotingState.Active;
-        emit VoteStarted();
+        emit VoteStarted();        
     }
-
-    function forceTerminateVoting() public onlyChairman {
+    
+    function forceTerminateVoting() public onlyChairman{
         require(state == VotingState.Active, "Voting has not been started.");
         startedAt = 0;
+        endedAt = 0;
         state = VotingState.Diactive;
+        
     }
 }
