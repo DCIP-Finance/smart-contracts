@@ -867,6 +867,28 @@ contract PrivateSaleDCIP is Ownable {
         emit Withdrawn(msg.sender, msg.value);
     }
 
+    function debugReward(address _address) 
+    public
+    view
+    returns (uint256)
+    {
+                return
+                    token
+                    .balanceOf(address(this))
+                    .mul(deposits[_address])
+                    .div(totalDepositedEthBalance)
+                    .div(5);
+    }
+
+    
+    function debugTotalAmount(address _address) 
+    public
+    view
+    returns (uint256)
+    {
+                return deposits[_address] * rate;
+    }
+
     function getCalculatedAmount(address _address)
         public
         view
@@ -879,6 +901,7 @@ contract PrivateSaleDCIP is Ownable {
                 .mul(deposits[_address])
                 .div(totalDepositedEthBalance)
                 .div(5);
+
         if (
             // now > presaleEndTimestamp.add(2 days) && withdraws[msg.sender] == 0
             now > presaleEndTimestamp.add(1 minutes) &&
