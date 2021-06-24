@@ -299,8 +299,9 @@ library Address {
         // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned
         // for accounts without code, i.e. `keccak256('')`
         bytes32 codehash;
-        bytes32 accountHash =
-            0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+
+            bytes32 accountHash
+         = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
         // solhint-disable-next-line no-inline-assembly
         assembly {
             codehash := extcodehash(account)
@@ -430,8 +431,9 @@ library Address {
         require(isContract(target), "Address: call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory returndata) =
-            target.call{value: weiValue}(data);
+        (bool success, bytes memory returndata) = target.call{value: weiValue}(
+            data
+        );
         if (success) {
             return returndata;
         } else {
@@ -1217,10 +1219,17 @@ contract DCIP is Context, IBEP20, Ownable {
             uint256
         )
     {
-        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity) =
-            _getTValues(tAmount);
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) =
-            _getRValues(tAmount, tFee, tLiquidity, _getRate());
+        (
+            uint256 tTransferAmount,
+            uint256 tFee,
+            uint256 tLiquidity
+        ) = _getTValues(tAmount);
+        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(
+            tAmount,
+            tFee,
+            tLiquidity,
+            _getRate()
+        );
         return (
             rAmount,
             rTransferAmount,
@@ -1395,8 +1404,8 @@ contract DCIP is Context, IBEP20, Ownable {
             contractTokenBalance = _maxTxAmount;
         }
 
-        bool overMinTokenBalance =
-            contractTokenBalance >= numTokensSellToAddToLiquidity;
+        bool overMinTokenBalance = contractTokenBalance >=
+            numTokensSellToAddToLiquidity;
         if (
             overMinTokenBalance &&
             !inSwapAndLiquify &&
@@ -1423,12 +1432,11 @@ contract DCIP is Context, IBEP20, Ownable {
             uint256 toBurn = calculateBurnFee(amount);
             (, , uint256 rFee, , uint256 tFee, ) = _getValues(amount);
 
-            uint256 feeTotal =
-                toMarketingWallet
-                    .add(toCommunityWallet)
-                    .add(toLiquidity)
-                    .add(toBurn)
-                    .add(tFee);
+            uint256 feeTotal = toMarketingWallet
+            .add(toCommunityWallet)
+            .add(toLiquidity)
+            .add(toBurn)
+            .add(tFee);
             //transfer amount, it will take tax, burn, liquidity fee
             amount = amount.sub(feeTotal);
 
