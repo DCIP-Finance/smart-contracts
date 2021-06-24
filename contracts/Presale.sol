@@ -828,7 +828,7 @@ contract PrivateSaleDCIP is Ownable {
         presaleStartTimestamp = now;
         presaleEndTimestamp = now.add(4 minutes);
         token = _token;
-        rate = _rate.mul(10**uint256(token.decimals())).div(10 ^ 18);
+        rate = _rate.mul(10**uint256(token.decimals())).div(10 ** 18);
     }
 
     receive() external payable {
@@ -871,6 +871,22 @@ contract PrivateSaleDCIP is Ownable {
         return twei.div(rate);
     }
 
+    function debugTotalAmountMultipliedByAddress(address _address)
+        public
+        view
+        returns (uint256)
+    {
+        return deposits[_address] * rate;
+    }
+
+    function debugTotalAmountMultipliedBy(uint256 number)
+        public
+        view
+        returns (uint256)
+    {
+        return number * rate;
+    }
+
     function debugRate() public view returns (uint256) {
         return rate;
     }
@@ -895,21 +911,12 @@ contract PrivateSaleDCIP is Ownable {
         return uint256(token.decimals());
     }
 
-    function debugReward(address _address) public view returns (uint256) {
-        return
-            token
-                .balanceOf(address(this))
-                .mul(deposits[_address])
-                .div(totalDepositedEthBalance)
-                .div(5);
-    }
-
     function getCalculatedAmount(address _address)
         public
         view
         returns (uint256)
     {
-        uint256 totalAmount = tokensFromWei(deposits[_address]);
+        uint256 totalAmount = deposits[_address] * rate;
 
         if (
             now > presaleEndTimestamp.add(1 minutes) &&
