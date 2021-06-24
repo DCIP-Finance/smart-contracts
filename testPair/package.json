@@ -1,0 +1,26 @@
+{
+  "name": "smart-contracts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "truffle test --network=development"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DCIP-Finance/smart-contracts.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DCIP-Finance/smart-contracts/issues"
+  },
+  "homepage": "https://github.com/DCIP-Finance/smart-contracts#readme",
+  "dependencies": {
+    "@truffle/hdwallet-provider": "^1.4.1",
+    "truffle": "^5.3.11"
+  }
+}
