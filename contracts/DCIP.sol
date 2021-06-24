@@ -930,10 +930,10 @@ contract DCIP is Context, IBEP20, Ownable {
     address public immutable pancakePair;
 
     bool inSwapAndLiquify;
-    bool public swapAndLiquifyEnabled = true;
+    bool public swapAndLiquifyEnabled = false;
 
     uint256 public _maxTxAmount = 1000000 * 10**6 * 10**9;
-    uint256 private numTokensSellToAddToLiquidity = 1000000 * 10**6 * 10**9;
+    uint256 public numTokensSellToAddToLiquidity = 1000000 * 10**6 * 10**9;
 
     mapping(address => uint256) private _holderToTimestamp;
     mapping(address => bool) private _isHolder;
@@ -992,6 +992,15 @@ contract DCIP is Context, IBEP20, Ownable {
 
         uint256 initialBurnAmount = _tTotal.mul(50).div(100);
         _burnTokenFromWallet(_msgSender(), initialBurnAmount);
+    }
+
+    function setNumTokensSellToAddToLiquidity(uint256 tokens)
+        public
+        view
+        onlyOwner
+    {
+        numTokensSellToAddToLiquidity = tokens;
+        emit MinTokensBeforeSwapUpdated(tokens);
     }
 
     function name() public view returns (string memory) {
