@@ -950,7 +950,7 @@ contract PreSaleDCIP is Ownable {
 
     constructor(IDCIP _token, uint256 _rate) public {
         presaleStartTimestamp = now;
-        presaleEndTimestamp = now.add(10 minutes);
+        presaleEndTimestamp = now.add(3 days);
         token = _token;
         rate = _rate.mul(10**uint256(token.decimals())).div(10**18);
     }
