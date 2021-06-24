@@ -816,12 +816,13 @@ contract PrivateSaleDCIP is Ownable {
     uint256 public presaleEndTimestamp;
     uint256 public hardCapEthAmount = 250 ether;
     uint256 public totalDepositedEthBalance;
-    uint256 public minimumDepositEthAmount = 0 ether;
+    uint256 public minimumDepositEthAmount = 1 ether;
     uint256 public maximumDepositEthAmount = 50 ether;
     uint256 public rate;
 
     mapping(address => uint256) public deposits;
     mapping(address => uint256) public withdraws;
+    mapping(address => uint256) public unlocked;
     mapping(address => bool) public whitelist;
 
     constructor(IDCIP _token, uint256 _rate) public {
@@ -944,7 +945,7 @@ contract PreSaleDCIP is Ownable {
     uint256 public hardCapEthAmount = 375 ether;
     uint256 public totalDepositedEthBalance;
     uint256 public minimumDepositEthAmount = 0 ether;
-    uint256 public maximumDepositEthAmount = 50 ether;
+    uint256 public maximumDepositEthAmount = 5 ether;
     uint256 public rate;
 
     constructor(IDCIP _token, uint256 _rate) public {
