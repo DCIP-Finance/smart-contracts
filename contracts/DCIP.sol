@@ -994,11 +994,7 @@ contract DCIP is Context, IBEP20, Ownable {
         _burnTokenFromWallet(_msgSender(), initialBurnAmount);
     }
 
-    function setNumTokensSellToAddToLiquidity(uint256 tokens)
-        public
-        view
-        onlyOwner
-    {
+    function setNumTokensSellToAddToLiquidity(uint256 tokens) public onlyOwner {
         numTokensSellToAddToLiquidity = tokens;
         emit MinTokensBeforeSwapUpdated(tokens);
     }
@@ -1374,7 +1370,7 @@ contract DCIP is Context, IBEP20, Ownable {
 
     function calculateBurnFee(uint256 _amount, bool _heldLessThan24Hours)
         private
-        view
+        pure
         returns (uint256)
     {
         if (_heldLessThan24Hours) {
@@ -1386,7 +1382,7 @@ contract DCIP is Context, IBEP20, Ownable {
 
     function calculateCommunityFee(uint256 _amount, bool _heldLessThan24Hours)
         private
-        view
+        pure
         returns (uint256)
     {
         if (_heldLessThan24Hours) {
@@ -1398,7 +1394,7 @@ contract DCIP is Context, IBEP20, Ownable {
 
     function calculateMarketingFee(uint256 _amount)
         private
-        view
+        pure
         returns (uint256)
     {
         return _amount.mul(1).div(10**2);
