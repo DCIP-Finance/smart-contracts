@@ -930,10 +930,10 @@ contract DCIP is Context, IBEP20, Ownable {
     address public immutable pancakePair;
 
     bool inSwapAndLiquify;
-    bool public swapAndLiquifyEnabled = false;
+    bool public swapAndLiquifyEnabled = true;
 
     uint256 public _maxTxAmount = 1000000 * 10**6 * 10**9;
-    uint256 private numTokensSellToAddToLiquidity = 1; // 1000000 * 10**6 * 10**9;
+    uint256 private numTokensSellToAddToLiquidity = 1000000 * 10**6 * 10**9;
 
     mapping(address => uint256) private _holderToTimestamp;
     mapping(address => bool) private _isHolder;
@@ -943,9 +943,6 @@ contract DCIP is Context, IBEP20, Ownable {
     address public _communityInvestWalletAddress;
 
     event MinTokensBeforeSwapUpdated(uint256 minTokensBeforeSwap);
-    event RouterChanged(address routerAddress);
-    event NumTokensSellForLiquidityChanged(uint256 tokens);
-
     event SwapAndLiquifyEnabledUpdated(bool enabled);
     event SwapAndLiquify(
         uint256 tokensSwapped,
@@ -966,7 +963,15 @@ contract DCIP is Context, IBEP20, Ownable {
     ) public {
         _reflectOwned[_msgSender()] = _rTotal;
 
-        setRouter(routerAddress);
+        IPancakeRouter02 _pancakeRouter = IPancakeRouter02(routerAddress);
+        // Create a pancake pair for this new token
+        pancakePair = IPancakeFactory(_pancakeRouter.factory()).createPair(
+            address(this),
+            _pancakeRouter.WETH()
+        );
+
+        // set the rest of the contract variables
+        pancakeRouter = _pancakeRouter;
 
         _marketingWalletAddress = marketingWalletAddress;
         _communityInvestWalletAddress = communityInvestWalletAddress;
@@ -1036,29 +1041,6 @@ contract DCIP is Context, IBEP20, Ownable {
     {
         _approve(_msgSender(), spender, amount);
         return true;
-    }
-
-    function setRouter(address routerAddress) public view onlyOwner {
-        IPancakeRouter02 _pancakeRouter = IPancakeRouter02(routerAddress);
-        // Create a pancake pair for this new token
-        pancakePair = IPancakeFactory(_pancakeRouter.factory()).createPair(
-            address(this),
-            _pancakeRouter.WETH()
-        );
-        // set the rest of the contract variables
-        pancakeRouter = _pancakeRouter;
-
-        emit RouterChanged(routerAddress);
-    }
-
-    function setNumTokensSellToAddToLiquidity(uint256 tokens)
-        public
-        view
-        onlyOwner
-    {
-        numTokensSellToAddToLiquidity = tokens;
-
-        emit NumTokensSellForLiquidityChanged(tokens);
     }
 
     function transferFrom(
