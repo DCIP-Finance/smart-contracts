@@ -828,7 +828,7 @@ contract PrivateSaleDCIP is Ownable {
         presaleStartTimestamp = now;
         presaleEndTimestamp = now.add(4 minutes);
         token = _token;
-        rate = _rate.mul(10**uint256(token.decimals())).div(10 ** 18);
+        rate = _rate.mul(10**uint256(token.decimals())).div(10**18);
     }
 
     receive() external payable {
@@ -865,50 +865,6 @@ contract PrivateSaleDCIP is Ownable {
         token.transfer(msg.sender, tokenAmount);
         withdraws[msg.sender] = withdraws[msg.sender].add(tokenAmount);
         emit Withdrawn(msg.sender, tokenAmount);
-    }
-
-    function tokensFromWei(uint256 twei) public view returns (uint256) {
-        return twei.div(rate);
-    }
-
-    function debugTotalAmountMultipliedByAddress(address _address)
-        public
-        view
-        returns (uint256)
-    {
-        return deposits[_address] * rate;
-    }
-
-    function debugTotalAmountMultipliedBy(uint256 number)
-        public
-        view
-        returns (uint256)
-    {
-        return number * rate;
-    }
-
-    function debugRate() public view returns (uint256) {
-        return rate;
-    }
-
-    function debugBalanceOfContract() public view returns (uint256) {
-        return token.balanceOf(address(this));
-    }
-
-    function debugWeiPrt1(uint256 twei) public view returns (uint256) {
-        return twei.div(10**18);
-    }
-
-    function debugWeiPrt2() public view returns (uint256) {
-        return rate.mul(10**uint256(token.decimals()));
-    }
-
-    function tokenDecimals() public view returns (uint256) {
-        return token.decimals();
-    }
-
-    function tokenDecimalsCasted() public view returns (uint256) {
-        return uint256(token.decimals());
     }
 
     function getCalculatedAmount(address _address)
@@ -985,7 +941,7 @@ contract PreSaleDCIP is Ownable {
     IDCIP public token;
     uint256 public presaleStartTimestamp;
     uint256 public presaleEndTimestamp;
-    uint256 public hardCapEthAmount = 250 ether;
+    uint256 public hardCapEthAmount = 375 ether;
     uint256 public totalDepositedEthBalance;
     uint256 public minimumDepositEthAmount = 0 ether;
     uint256 public maximumDepositEthAmount = 50 ether;
@@ -995,7 +951,7 @@ contract PreSaleDCIP is Ownable {
         presaleStartTimestamp = now;
         presaleEndTimestamp = now.add(10 minutes);
         token = _token;
-        rate = _rate;
+        rate = _rate.mul(10**uint256(token.decimals())).div(10**18);
     }
 
     receive() external payable {
@@ -1019,7 +975,7 @@ contract PreSaleDCIP is Ownable {
 
         totalDepositedEthBalance = totalDepositedEthBalance.add(msg.value);
         deposits[msg.sender] = deposits[msg.sender].add(msg.value);
-        token.transfer(msg.sender, msg.value / rate);
+        token.transfer(msg.sender, msg.value * rate);
         emit Traded(msg.sender, msg.value);
     }
 
