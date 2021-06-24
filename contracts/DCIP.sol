@@ -299,8 +299,10 @@ library Address {
         // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned
         // for accounts without code, i.e. `keccak256('')`
         bytes32 codehash;
-        bytes32 accountHash =
-            0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+
+
+            bytes32 accountHash
+         = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
         // solhint-disable-next-line no-inline-assembly
         assembly {
             codehash := extcodehash(account)
@@ -430,8 +432,9 @@ library Address {
         require(isContract(target), "Address: call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory returndata) =
-            target.call{value: weiValue}(data);
+        (bool success, bytes memory returndata) = target.call{value: weiValue}(
+            data
+        );
         if (success) {
             return returndata;
         } else {
@@ -927,10 +930,10 @@ contract DCIP is Context, IBEP20, Ownable {
     address public immutable pancakePair;
 
     bool inSwapAndLiquify;
-    bool public swapAndLiquifyEnabled = true;
+    bool public swapAndLiquifyEnabled = false;
 
     uint256 public _maxTxAmount = 1000000 * 10**6 * 10**9;
-    uint256 private numTokensSellToAddToLiquidity = 1000000 * 10**6 * 10**9;
+    uint256 private numTokensSellToAddToLiquidity = 1; // 1000000 * 10**6 * 10**9;
 
     mapping(address => uint256) private _holderToTimestamp;
     mapping(address => bool) private _isHolder;
@@ -940,6 +943,9 @@ contract DCIP is Context, IBEP20, Ownable {
     address public _communityInvestWalletAddress;
 
     event MinTokensBeforeSwapUpdated(uint256 minTokensBeforeSwap);
+    event RouterChanged(address routerAddress);
+    event NumTokensSellForLiquidityChanged(uint256 tokens);
+
     event SwapAndLiquifyEnabledUpdated(bool enabled);
     event SwapAndLiquify(
         uint256 tokensSwapped,
@@ -960,17 +966,10 @@ contract DCIP is Context, IBEP20, Ownable {
     ) public {
         _reflectOwned[_msgSender()] = _rTotal;
 
-        IPancakeRouter02 _pancakeRouter = IPancakeRouter02(routerAddress);
-        // Create a pancake pair for this new token
-        pancakePair = IPancakeFactory(_pancakeRouter.factory()).createPair(
-            address(this),
-            _pancakeRouter.WETH()
-        );
+        setRouter(routerAddress);
 
         _marketingWalletAddress = marketingWalletAddress;
         _communityInvestWalletAddress = communityInvestWalletAddress;
-        // set the rest of the contract variables
-        pancakeRouter = _pancakeRouter;
 
         //exclude owner and this contract from fee
         _isExcludedFromFee[owner()] = true;
@@ -1037,6 +1036,29 @@ contract DCIP is Context, IBEP20, Ownable {
     {
         _approve(_msgSender(), spender, amount);
         return true;
+    }
+
+    function setRouter(address routerAddress) public view onlyOwner {
+        IPancakeRouter02 _pancakeRouter = IPancakeRouter02(routerAddress);
+        // Create a pancake pair for this new token
+        pancakePair = IPancakeFactory(_pancakeRouter.factory()).createPair(
+            address(this),
+            _pancakeRouter.WETH()
+        );
+        // set the rest of the contract variables
+        pancakeRouter = _pancakeRouter;
+
+        emit RouterChanged(routerAddress);
+    }
+
+    function setNumTokensSellToAddToLiquidity(uint256 tokens)
+        public
+        view
+        onlyOwner
+    {
+        numTokensSellToAddToLiquidity = tokens;
+
+        emit NumTokensSellForLiquidityChanged(tokens);
     }
 
     function transferFrom(
@@ -1199,7 +1221,7 @@ contract DCIP is Context, IBEP20, Ownable {
     function IncludeFromTxLimit(address account) public onlyOwner {
         _isExcludedFromTxLimit[account] = false;
     }
-    
+
     function ExcludeFromTxLimit(address account) public onlyOwner {
         _isExcludedFromTxLimit[account] = true;
     }
@@ -1241,10 +1263,17 @@ contract DCIP is Context, IBEP20, Ownable {
             uint256
         )
     {
-        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity) =
-            _getTValues(tAmount);
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) =
-            _getRValues(tAmount, tFee, tLiquidity, _getRate());
+        (
+            uint256 tTransferAmount,
+            uint256 tFee,
+            uint256 tLiquidity
+        ) = _getTValues(tAmount);
+        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(
+            tAmount,
+            tFee,
+            tLiquidity,
+            _getRate()
+        );
         return (
             rAmount,
             rTransferAmount,
@@ -1264,8 +1293,8 @@ contract DCIP is Context, IBEP20, Ownable {
             uint256
         )
     {
-        bool heldLessThan24Hours =
-            block.timestamp < _holderToTimestamp[_msgSender()] + 24 hours;
+        bool heldLessThan24Hours = block.timestamp <
+            _holderToTimestamp[_msgSender()] + 24 hours;
 
         uint256 tFee = calculateTaxFee(tAmount, heldLessThan24Hours);
         uint256 tLiquidity = calculateLiquidityFee(tAmount);
@@ -1429,7 +1458,12 @@ contract DCIP is Context, IBEP20, Ownable {
         require(amount > 0, "Transfer amount must be greater than zero");
 
         // Exclude from txlimit for private sale and presale
-        if (from != owner() && to != owner() && !isExcludedFromTxLimit(from) && !isExcludedFromTxLimit(to))
+        if (
+            from != owner() &&
+            to != owner() &&
+            !isExcludedFromTxLimit(from) &&
+            !isExcludedFromTxLimit(to)
+        )
             require(
                 amount <= _maxTxAmount,
                 "Transfer amount exceeds the maxTxAmount."
@@ -1445,8 +1479,8 @@ contract DCIP is Context, IBEP20, Ownable {
             contractTokenBalance = _maxTxAmount;
         }
 
-        bool overMinTokenBalance =
-            contractTokenBalance >= numTokensSellToAddToLiquidity;
+        bool overMinTokenBalance = contractTokenBalance >=
+            numTokensSellToAddToLiquidity;
         if (
             overMinTokenBalance &&
             !inSwapAndLiquify &&
@@ -1467,22 +1501,23 @@ contract DCIP is Context, IBEP20, Ownable {
         }
 
         if (takeFee) {
-            bool heldLessThan24Hours =
-                block.timestamp < _holderToTimestamp[_msgSender()] + 24 hours;
+            bool heldLessThan24Hours = block.timestamp <
+                _holderToTimestamp[_msgSender()] + 24 hours;
 
             uint256 toMarketingWallet = calculateMarketingFee(amount);
-            uint256 toCommunityWallet =
-                calculateCommunityFee(amount, heldLessThan24Hours);
+            uint256 toCommunityWallet = calculateCommunityFee(
+                amount,
+                heldLessThan24Hours
+            );
             uint256 toLiquidity = calculateLiquidityFee(amount);
             uint256 toBurn = calculateBurnFee(amount, heldLessThan24Hours);
             (, , uint256 rFee, , uint256 tFee, ) = _getValues(amount);
 
-            uint256 feeTotal =
-                toMarketingWallet
-                    .add(toCommunityWallet)
-                    .add(toLiquidity)
-                    .add(toBurn)
-                    .add(tFee);
+            uint256 feeTotal = toMarketingWallet
+            .add(toCommunityWallet)
+            .add(toLiquidity)
+            .add(toBurn)
+            .add(tFee);
             //transfer amount, it will take tax, burn, liquidity fee
             amount = amount.sub(feeTotal);
 
