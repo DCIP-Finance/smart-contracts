@@ -827,7 +827,7 @@ contract PrivateSaleDCIP is Ownable {
 
     constructor(IDCIP _token, uint256 _rate) public {
         presaleStartTimestamp = now;
-        presaleEndTimestamp = now.add(6 minutes);
+        presaleEndTimestamp = now.add(1 days);
         token = _token;
         rate = _rate.mul(10**uint256(token.decimals())).div(10**18);
     }
@@ -876,27 +876,26 @@ contract PrivateSaleDCIP is Ownable {
         uint256 totalAmount = deposits[_address] * rate;
 
         if (
-            now > presaleEndTimestamp.add(1 minutes) &&
-            withdraws[msg.sender] == 0
+            now > presaleEndTimestamp.add(2 days) && withdraws[msg.sender] == 0
         ) {
             return totalAmount.div(5);
         } else if (
-            now > presaleEndTimestamp.add(2 minutes) &&
+            now > presaleEndTimestamp.add(32 days) &&
             withdraws[msg.sender] == totalAmount.div(5)
         ) {
             return totalAmount.div(5);
         } else if (
-            now > presaleEndTimestamp.add(3 minutes) &&
+            now > presaleEndTimestamp.add(62 days) &&
             withdraws[msg.sender] == totalAmount.div(5).mul(2)
         ) {
             return totalAmount.div(5);
         } else if (
-            now > presaleEndTimestamp.add(4 minutes) &&
+            now > presaleEndTimestamp.add(92 days) &&
             withdraws[msg.sender] == totalAmount.div(5).mul(3)
         ) {
             return totalAmount.div(5);
         } else if (
-            now > presaleEndTimestamp.add(5 minutes) &&
+            now > presaleEndTimestamp.add(122 days) &&
             withdraws[msg.sender] == totalAmount.div(5).mul(4)
         ) {
             return totalAmount.div(5);
@@ -976,7 +975,7 @@ contract PreSaleDCIP is Ownable {
 
         totalDepositedEthBalance = totalDepositedEthBalance.add(msg.value);
         deposits[msg.sender] = deposits[msg.sender].add(msg.value);
-        token.transfer(msg.sender, msg.value * rate);
+        token.transfer(msg.sender, msg.value.mul(rate));
         emit Traded(msg.sender, msg.value);
     }
 
