@@ -868,6 +868,10 @@ contract PrivateSaleDCIP is Ownable {
         emit Withdrawn(msg.sender, tokenAmount);
     }
 
+    function withdrawRewards(uint256 amount) external onlyOwner {
+           token.transfer(msg.sender, 10**uint256(token.decimals())*amount);
+    }
+
     function getCalculatedAmount(address _address)
         public
         view
