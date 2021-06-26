@@ -940,7 +940,6 @@ contract PreSaleDCIP is Ownable {
 
     mapping(address => uint256) public deposits;
     mapping(address => uint256) public withdraws;
-    mapping(address => bool) public whitelist;
 
     IDCIP public token;
     uint256 public presaleStartTimestamp;
@@ -958,18 +957,14 @@ contract PreSaleDCIP is Ownable {
         rate = _rate.mul(10**uint256(token.decimals())).div(10**18);
     }
 
-    receive() external payable {
-        trade();
-    }
-
-    function trade() public payable {
+    function deposit() public payable {
         require(
             now >= presaleStartTimestamp && now <= presaleEndTimestamp,
-            "presale is not active"
+            "Presale is not active"
         );
         require(
             totalDepositedEthBalance.add(msg.value) <= hardCapEthAmount,
-            "trade limits reached"
+            "Hardcap limits reached"
         );
         require(
             deposits[msg.sender].add(msg.value) >= minimumDepositEthAmount &&
@@ -979,8 +974,32 @@ contract PreSaleDCIP is Ownable {
 
         totalDepositedEthBalance = totalDepositedEthBalance.add(msg.value);
         deposits[msg.sender] = deposits[msg.sender].add(msg.value);
-        token.transfer(msg.sender, msg.value.mul(rate));
-        emit Traded(msg.sender, msg.value);
+        emit Deposited(msg.sender, msg.value);
+    }
+
+      function getCalculatedAmount(address _address)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 totalAmount = deposits[_address] * rate;
+
+        if (
+            now > presaleEndTimestamp.add(1 days) && withdraws[msg.sender] == 0
+        ) {
+            return totalAmount;
+        }
+        return 0;
+    }
+
+    function withdraw() public {
+        require(deposits[msg.sender] > 0, "invalid deposit amount");
+
+        uint256 tokenAmount = getCalculatedAmount(msg.sender);
+        require(tokenAmount > 0, "Receivable token amount is invalid");
+        token.transfer(msg.sender, tokenAmount);
+        withdraws[msg.sender] = withdraws[msg.sender].add(tokenAmount);
+        emit Withdrawn(msg.sender, tokenAmount);
     }
 
     function releaseFunds() external onlyOwner {
@@ -999,5 +1018,6 @@ contract PreSaleDCIP is Ownable {
         }
     }
 
-    event Traded(address indexed user, uint256 amount);
+    event Deposited(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
 }
