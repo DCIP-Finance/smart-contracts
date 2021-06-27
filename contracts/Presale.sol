@@ -951,8 +951,8 @@ contract PreSaleDCIP is Ownable {
     uint256 public rate;
 
     constructor(IDCIP _token, uint256 _rate) public {
-        presaleStartTimestamp = now;
-        presaleEndTimestamp = now.add(3 days);
+        presaleStartTimestamp = now.add(4 hours).add(10 minutes);
+        presaleEndTimestamp = presaleStartTimestamp.add(3 days); // 3 days
         token = _token;
         rate = _rate.mul(10**uint256(token.decimals())).div(10**18);
     }
@@ -985,7 +985,7 @@ contract PreSaleDCIP is Ownable {
         uint256 totalAmount = deposits[_address] * rate;
 
         if (
-            now > presaleEndTimestamp.add(1 days) && withdraws[msg.sender] == 0
+            now > presaleEndTimestamp && withdraws[_address] == 0
         ) {
             return totalAmount;
         }
